@@ -7,7 +7,6 @@ import {
   Container,
   Box,
   Typography,
-  TextField,
   FormControlLabel,
   Checkbox,
   Paper,
@@ -17,10 +16,11 @@ import {
   Select,
   MenuItem,
   Grid,
+  Button,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// Configuración del tema con la nueva paleta
+// ======== Tema con la misma paleta que usas en tu proyecto ========
 const theme = createTheme({
   palette: {
     primary: {
@@ -42,35 +42,37 @@ const theme = createTheme({
   },
 });
 
-// Lista de módulos (sin precios individuales)
+// Lista de módulos (ordenados y con agregados)
 const odooModules = [
-  { name: "CRM" },
-  { name: "Ventas" },
-  { name: "Compras" },
-  { name: "Inventario" },
+  { name: "Calidad" },
   { name: "Contabilidad" },
-  { name: "Encuestasß" },
+  { name: "CRM" },
+  { name: "Compras" },
   { name: "Documentos" },
+  { name: "Email Marketing" },
+  { name: "Encuestas" },
+  { name: "Eventos" },
   { name: "Facturación" },
+  { name: "Field Service" },
+  { name: "Gestión de Almacenes" },
+  { name: "Gestión de Gastos" },
+  { name: "Helpdesk" },
+  { name: "Inventario" },
   { name: "Manufactura" },
+  { name: "Mantenimiento" },
+  { name: "Marketing" },
+  { name: "Mesa de trabajo" },
+  { name: "Planificación de la Producción" },
+  { name: "Punto de Venta" },
   { name: "Proyectos" },
   { name: "Recursos Humanos" },
   { name: "Sitio Web" },
-  { name: "eCommerce" },
-  { name: "Punto de Venta" },
-  { name: "Marketing" },
-  { name: "Email Marketing" },
-  { name: "Helpdesk" },
   { name: "Suscripciones" },
-  { name: "Mantenimiento" },
-  { name: "Gestión de Almacenes" },
-  { name: "Eventos" },
-  { name: "Field Service" },
-  { name: "Gestión de Gastos" },
-  { name: "Calidad" },
-  { name: "Planificación de la Producción" },
+  { name: "Ventas" },
+  { name: "eCommerce" },
 ];
 
+// Opciones para la cantidad de usuarios
 const userRanges = [
   { label: "1 usuario", value: 1 },
   { label: "2 a 5 usuarios", value: 5 },
@@ -79,6 +81,29 @@ const userRanges = [
   { label: "21-50 usuarios", value: 50 },
   { label: "51-100 usuarios", value: 100 },
   { label: "Más de 100 usuarios", value: 150 },
+];
+
+// Opciones para la cantidad de órdenes/facturas
+const orderRanges = [
+  { label: "0 a 50", value: 50 },
+  { label: "51 a 100", value: 100 },
+  { label: "101 a 200", value: 200 },
+  { label: "201 a 350", value: 350 },
+  { label: "Más de 350", value: 400 },
+];
+
+// Opciones para el tipo de licencia
+const licenseOptions = [
+  {
+    label: "Odoo Estándar (MX$225 por usuario + impuestos)",
+    value: "estandar",
+    cost: 225,
+  },
+  {
+    label: "Odoo.sh (MX$342 por usuario + impuestos)",
+    value: "odoo_sh",
+    cost: 342,
+  },
 ];
 
 export default function CotizadorPage() {
@@ -90,10 +115,11 @@ export default function CotizadorPage() {
   // Estados del cotizador
   const [users, setUsers] = useState(1);
   const [selectedModules, setSelectedModules] = useState([]);
-  const [orders, setOrders] = useState(0);
-  const [quote, setQuote] = useState(17000); // Precio base inicial
+  const [orders, setOrders] = useState(orderRanges[0].value);
+  const [licenseType, setLicenseType] = useState("estandar");
+  const [quote, setQuote] = useState(17000);
 
-  // Verificar login al montar el componente
+  // Verificar login
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     if (!isLoggedIn) {
@@ -103,10 +129,12 @@ export default function CotizadorPage() {
     }
   }, [router]);
 
-  // Cálculo de costo en tiempo real (se ejecuta solo si se verificó el login)
+  // Cálculo de costo en tiempo real
   useEffect(() => {
     if (!authChecked) return;
     const moduleCount = selectedModules.length;
+
+    // Base según cantidad de módulos
     let modulePrice = 0;
     if (moduleCount <= 3) {
       modulePrice = 17000;
@@ -117,9 +145,30 @@ export default function CotizadorPage() {
     } else if (moduleCount >= 9) {
       modulePrice = 29000;
     }
-    const total = modulePrice + users * 50 + orders * 0.5;
+
+    // Extra costo por rango de usuarios: si es mayor a "1 usuario", +2000
+    const extraUsersCost = users > 1 ? 2000 : 0;
+
+    // Extra costo por rango de órdenes: si se elige un rango mayor al mínimo, +3500
+    const extraOrdersCost = orders > orderRanges[0].value ? 3500 : 0;
+
+    // Costo de licencia por usuario
+    const selectedLicense = licenseOptions.find(
+      (opt) => opt.value === licenseType
+    );
+    const licenseCost = selectedLicense ? selectedLicense.cost : 225;
+
+    // Se suma el costo de licencia multiplicado por el número de usuarios
+    const total =
+      modulePrice +
+      users * 50 +
+      orders * 0.5 +
+      extraUsersCost +
+      extraOrdersCost +
+      users * licenseCost;
+
     setQuote(total.toFixed(2));
-  }, [authChecked, users, selectedModules, orders]);
+  }, [authChecked, users, selectedModules, orders, licenseType]);
 
   if (!authChecked) return null;
 
@@ -132,14 +181,17 @@ export default function CotizadorPage() {
     );
   };
 
+  // Obtiene las etiquetas para mostrar en el Resumen
+  const selectedUserLabel = selectedUserRange(users);
+  const selectedOrderLabel = selectedOrderRange(orders);
+  const selectedLicenseLabel =
+    licenseOptions.find((opt) => opt.value === licenseType)?.label || "";
+
   return (
     <ThemeProvider theme={theme}>
       <Head>
         <title>Estimador de Proyecto | Tersoft.mx</title>
-        <meta
-          name="description"
-          content="Estimador de costos empresarial para Odoo y Sage 300"
-        />
+        <meta name="description" content="Cotizador Odoo y Sage 300" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -158,19 +210,10 @@ export default function CotizadorPage() {
       </AppBar>
 
       {/* Contenedor principal */}
-      <Box
-        sx={{
-          bgcolor: "background.default",
-          minHeight: "100vh",
-          py: 5,
-          position: "relative",
-        }}
-      >
-        <Container maxWidth="md">
-          {/* Usamos Grid para dividir en dos columnas:
-              - Izquierda: Formulario del cotizador.
-              - Derecha: Recuadro con el costo del proyecto */}
+      <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 5 }}>
+        <Container maxWidth="lg">
           <Grid container spacing={4}>
+            {/* Columna Izquierda */}
             <Grid item xs={12} md={8}>
               <Paper
                 elevation={1}
@@ -194,10 +237,9 @@ export default function CotizadorPage() {
                   usuarios clave, importación de sus datos y la personalización
                   de sus flujos de negocios.
                 </Typography>
-
                 <Divider sx={{ mb: 3 }} />
 
-                {/* Sección: Tamaño de la empresa */}
+                {/* Tamaño de la empresa (usuarios) */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -227,7 +269,37 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
-                {/* Sección: Módulos */}
+                {/* Tipo de licencia */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ mb: 1 }}
+                    color="text.primary"
+                  >
+                    Tipo de licencia
+                  </Typography>
+                  <FormControl fullWidth>
+                    <InputLabel id="license-label" color="primary">
+                      Selecciona una licencia
+                    </InputLabel>
+                    <Select
+                      labelId="license-label"
+                      value={licenseType}
+                      label="Selecciona una licencia"
+                      onChange={(e) => setLicenseType(e.target.value)}
+                      color="primary"
+                    >
+                      {licenseOptions.map((opt) => (
+                        <MenuItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                {/* Módulos */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -256,7 +328,7 @@ export default function CotizadorPage() {
                   </Grid>
                 </Box>
 
-                {/* Sección: Órdenes/Facturas */}
+                {/* Órdenes/Facturas */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -266,20 +338,29 @@ export default function CotizadorPage() {
                   >
                     Cantidad de Órdenes/Facturas mensuales
                   </Typography>
-                  <TextField
-                    type="number"
-                    label="Cantidad"
-                    value={orders}
-                    onChange={(e) => setOrders(parseInt(e.target.value))}
-                    fullWidth
-                    inputProps={{ min: 0 }}
-                    color="primary"
-                  />
+                  <FormControl fullWidth>
+                    <InputLabel id="orders-range-label" color="primary">
+                      Selecciona un rango
+                    </InputLabel>
+                    <Select
+                      labelId="orders-range-label"
+                      value={orders}
+                      label="Cantidad"
+                      onChange={(e) => setOrders(parseInt(e.target.value))}
+                      color="primary"
+                    >
+                      {orderRanges.map((range) => (
+                        <MenuItem key={range.value} value={range.value}>
+                          {range.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Box>
               </Paper>
             </Grid>
 
-            {/* Recuadro del costo del proyecto en la columna derecha */}
+            {/* Columna Derecha: Resumen */}
             <Grid item xs={12} md={4}>
               <Box
                 sx={{
@@ -287,24 +368,47 @@ export default function CotizadorPage() {
                   borderRadius: 2,
                   border: "1px solid #dee2e6",
                   backgroundColor: "#f8f9fa",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
                 }}
               >
                 <Typography
-                  variant="subtitle1"
+                  variant="h6"
                   fontWeight="bold"
                   color="text.primary"
+                  sx={{ mb: 2 }}
+                >
+                  Resumen
+                </Typography>
+                <Typography variant="body2" color="text.primary">
+                  <strong>Usuarios:</strong> {selectedUserLabel}
+                </Typography>
+                <Typography variant="body2" color="text.primary">
+                  <strong>Licencia:</strong> {selectedLicenseLabel}
+                </Typography>
+                <Typography variant="body2" color="text.primary">
+                  <strong>Módulos:</strong> {selectedModules.length}
+                </Typography>
+                <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
+                  <strong>Órdenes/Facturas:</strong> {selectedOrderLabel}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Typography
+                  variant="h5"
+                  color="success.main"
+                  fontWeight="bold"
                   sx={{ mb: 1 }}
                 >
-                  Costo del proyecto:
-                </Typography>
-                <Typography variant="h4" color="success.main" fontWeight="bold">
                   MX${quote}
                 </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  *Costo estimado. Puede variar según requisitos específicos.
+                </Typography>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                ></Box>
               </Box>
             </Grid>
           </Grid>
@@ -312,4 +416,12 @@ export default function CotizadorPage() {
       </Box>
     </ThemeProvider>
   );
+}
+
+/** Helpers: para mostrar las etiquetas de los rangos */
+function selectedUserRange(users) {
+  return userRanges.find((range) => range.value === users)?.label || "";
+}
+function selectedOrderRange(orders) {
+  return orderRanges.find((range) => range.value === orders)?.label || "";
 }
