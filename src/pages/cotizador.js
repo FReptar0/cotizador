@@ -49,6 +49,8 @@ const odooModules = [
   { name: "Compras" },
   { name: "Inventario" },
   { name: "Contabilidad" },
+  { name: "Encuestasß" },
+  { name: "Documentos" },
   { name: "Facturación" },
   { name: "Manufactura" },
   { name: "Proyectos" },
@@ -70,7 +72,8 @@ const odooModules = [
 ];
 
 const userRanges = [
-  { label: "1-5 usuarios", value: 5 },
+  { label: "1 usuario", value: 1 },
+  { label: "2 a 5 usuarios", value: 5 },
   { label: "6-10 usuarios", value: 10 },
   { label: "11-20 usuarios", value: 20 },
   { label: "21-50 usuarios", value: 50 },
@@ -81,32 +84,29 @@ const userRanges = [
 export default function CotizadorPage() {
   const router = useRouter();
 
-  // 1) Estado para controlar si ya verificamos el login
+  // Estado para controlar si ya verificamos el login
   const [authChecked, setAuthChecked] = useState(false);
 
-  // 2) Estados del cotizador
-  const [users, setUsers] = useState(5);
+  // Estados del cotizador
+  const [users, setUsers] = useState(1);
   const [selectedModules, setSelectedModules] = useState([]);
   const [orders, setOrders] = useState(0);
   const [quote, setQuote] = useState(17000); // Precio base inicial
 
-  // 3) useEffect para checar login SIEMPRE, sin condicionales que alteren el orden de hooks
+  // Verificar login al montar el componente
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     if (!isLoggedIn) {
-      // Redirigimos sin renderizar nada del cotizador
       router.replace("/login");
     } else {
-      // Marcamos que ya validamos y está logueado
       setAuthChecked(true);
     }
   }, [router]);
 
-  // 4) useEffect para calcular el costo, pero solo si ya está authChecked
+  // Cálculo de costo en tiempo real (se ejecuta solo si se verificó el login)
   useEffect(() => {
-    if (!authChecked) return; // Si no está verificado el login, no calculamos
+    if (!authChecked) return;
     const moduleCount = selectedModules.length;
-
     let modulePrice = 0;
     if (moduleCount <= 3) {
       modulePrice = 17000;
@@ -117,17 +117,13 @@ export default function CotizadorPage() {
     } else if (moduleCount >= 9) {
       modulePrice = 29000;
     }
-
     const total = modulePrice + users * 50 + orders * 0.5;
     setQuote(total.toFixed(2));
   }, [authChecked, users, selectedModules, orders]);
 
-  // 5) Si no está verificado el login, no renderizamos nada (evitamos "parpadeo")
-  if (!authChecked) {
-    return null;
-  }
+  if (!authChecked) return null;
 
-  // 6) Ahora sí renderizamos el cotizador
+  // Función para manejar cambios en los módulos
   const handleModuleChange = (moduleName) => {
     setSelectedModules((prev) =>
       prev.includes(moduleName)
@@ -161,34 +157,7 @@ export default function CotizadorPage() {
         </Toolbar>
       </AppBar>
 
-      {/* Bloque del costo del proyecto fuera del container principal */}
-      <Box
-        sx={{ bgcolor: "#f8f9fa", borderBottom: "1px solid #dee2e6", py: 2 }}
-      >
-        <Container maxWidth="md">
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              alignItems: "center",
-            }}
-          >
-            <Typography
-              variant="subtitle1"
-              fontWeight="bold"
-              color="text.primary"
-              sx={{ mr: 2 }}
-            >
-              Costo del proyecto:
-            </Typography>
-            <Typography variant="h4" color="success.main" fontWeight="bold">
-              MX${quote}
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
-
-      {/* Contenedor principal del formulario */}
+      {/* Contenedor principal */}
       <Box
         sx={{
           bgcolor: "background.default",
@@ -198,111 +167,147 @@ export default function CotizadorPage() {
         }}
       >
         <Container maxWidth="md">
-          <Paper
-            elevation={1}
-            sx={{
-              p: { xs: 3, md: 5 },
-              borderRadius: 2,
-              backgroundColor: "#ffffff",
-            }}
-          >
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-              gutterBottom
-              color="text.primary"
-            >
-              Estimador del proyecto
-            </Typography>
-            <Typography variant="body1" color="text.primary" sx={{ mb: 3 }}>
-              Una implementación exitosa requiere del análisis de las
-              necesidades de su negocio, configuración, capacitación de sus
-              usuarios clave, importación de sus datos y la personalización de
-              sus flujos de negocios.
-            </Typography>
-
-            <Divider sx={{ mb: 3 }} />
-
-            {/* Sección: Tamaño de la empresa */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                fontWeight="bold"
-                sx={{ mb: 1 }}
-                color="text.primary"
+          {/* Usamos Grid para dividir en dos columnas:
+              - Izquierda: Formulario del cotizador.
+              - Derecha: Recuadro con el costo del proyecto */}
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={8}>
+              <Paper
+                elevation={1}
+                sx={{
+                  p: { xs: 3, md: 5 },
+                  borderRadius: 2,
+                  backgroundColor: "#ffffff",
+                }}
               >
-                Tamaño de tu empresa (en usuarios)
-              </Typography>
-              <FormControl fullWidth>
-                <InputLabel id="user-range-label" color="primary">
-                  Usuarios
-                </InputLabel>
-                <Select
-                  labelId="user-range-label"
-                  value={users}
-                  label="Usuarios"
-                  onChange={(e) => setUsers(parseInt(e.target.value))}
-                  color="primary"
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  gutterBottom
+                  color="text.primary"
                 >
-                  {userRanges.map((range) => (
-                    <MenuItem key={range.value} value={range.value}>
-                      {range.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+                  Estimador del proyecto
+                </Typography>
+                <Typography variant="body1" color="text.primary" sx={{ mb: 3 }}>
+                  Una implementación exitosa requiere del análisis de las
+                  necesidades de su negocio, configuración, capacitación de sus
+                  usuarios clave, importación de sus datos y la personalización
+                  de sus flujos de negocios.
+                </Typography>
 
-            {/* Sección: Módulos */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                fontWeight="bold"
-                sx={{ mb: 1 }}
-                color="text.primary"
-              >
-                Selecciona los módulos necesarios
-              </Typography>
-              <Grid container spacing={1}>
-                {odooModules.map((module) => (
-                  <Grid item xs={12} sm={6} md={4} key={module.name}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          onChange={() => handleModuleChange(module.name)}
-                          checked={selectedModules.includes(module.name)}
-                          color="primary"
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Sección: Tamaño de la empresa */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ mb: 1 }}
+                    color="text.primary"
+                  >
+                    Tamaño de tu empresa (en usuarios)
+                  </Typography>
+                  <FormControl fullWidth>
+                    <InputLabel id="user-range-label" color="primary">
+                      Usuarios
+                    </InputLabel>
+                    <Select
+                      labelId="user-range-label"
+                      value={users}
+                      label="Usuarios"
+                      onChange={(e) => setUsers(parseInt(e.target.value))}
+                      color="primary"
+                    >
+                      {userRanges.map((range) => (
+                        <MenuItem key={range.value} value={range.value}>
+                          {range.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                {/* Sección: Módulos */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ mb: 1 }}
+                    color="text.primary"
+                  >
+                    Selecciona los módulos necesarios
+                  </Typography>
+                  <Grid container spacing={1}>
+                    {odooModules.map((module) => (
+                      <Grid item xs={12} sm={6} md={4} key={module.name}>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              onChange={() => handleModuleChange(module.name)}
+                              checked={selectedModules.includes(module.name)}
+                              color="primary"
+                            />
+                          }
+                          label={module.name}
+                          sx={{ color: "text.primary" }}
                         />
-                      }
-                      label={module.name}
-                      sx={{ color: "text.primary" }}
-                    />
+                      </Grid>
+                    ))}
                   </Grid>
-                ))}
-              </Grid>
-            </Box>
+                </Box>
 
-            {/* Sección: Órdenes/Facturas */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="subtitle1"
-                fontWeight="bold"
-                sx={{ mb: 1 }}
-                color="text.primary"
+                {/* Sección: Órdenes/Facturas */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ mb: 1 }}
+                    color="text.primary"
+                  >
+                    Cantidad de Órdenes/Facturas mensuales
+                  </Typography>
+                  <TextField
+                    type="number"
+                    label="Cantidad"
+                    value={orders}
+                    onChange={(e) => setOrders(parseInt(e.target.value))}
+                    fullWidth
+                    inputProps={{ min: 0 }}
+                    color="primary"
+                  />
+                </Box>
+              </Paper>
+            </Grid>
+
+            {/* Recuadro del costo del proyecto en la columna derecha */}
+            <Grid item xs={12} md={4}>
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  border: "1px solid #dee2e6",
+                  backgroundColor: "#f8f9fa",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
-                Cantidad de Órdenes/Facturas mensuales
-              </Typography>
-              <TextField
-                type="number"
-                label="Cantidad"
-                value={orders}
-                onChange={(e) => setOrders(parseInt(e.target.value))}
-                fullWidth
-                inputProps={{ min: 0 }}
-                color="primary"
-              />
-            </Box>
-          </Paper>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight="bold"
+                  color="text.primary"
+                  sx={{ mb: 1 }}
+                >
+                  Costo del proyecto:
+                </Typography>
+                <Typography variant="h4" color="success.main" fontWeight="bold">
+                  MX${quote}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
         </Container>
       </Box>
     </ThemeProvider>
