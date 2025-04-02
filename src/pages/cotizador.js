@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// ======== Tema con la misma paleta que usas en tu proyecto ========
+// Configuración del tema con la nueva paleta
 const theme = createTheme({
   palette: {
     primary: {
@@ -42,7 +42,7 @@ const theme = createTheme({
   },
 });
 
-// Lista de módulos (ordenados y con agregados)
+// Lista de módulos (ordenados alfabéticamente y con los nuevos agregados)
 const odooModules = [
   { name: "Calidad" },
   { name: "Contabilidad" },
@@ -117,7 +117,10 @@ export default function CotizadorPage() {
   const [selectedModules, setSelectedModules] = useState([]);
   const [orders, setOrders] = useState(orderRanges[0].value);
   const [licenseType, setLicenseType] = useState("estandar");
-  const [quote, setQuote] = useState(17000);
+  const [quote, setQuote] = useState(17000); // Precio base inicial
+  // Estado para el modelo de estimación de horas: "max" o "sum"
+  const [hoursModel, setHoursModel] = useState("max");
+  const [estimatedHours, setEstimatedHours] = useState(25);
 
   // Verificar login
   useEffect(() => {
@@ -129,12 +132,10 @@ export default function CotizadorPage() {
     }
   }, [router]);
 
-  // Cálculo de costo en tiempo real
+  // Cálculo del costo (ya existente)
   useEffect(() => {
     if (!authChecked) return;
     const moduleCount = selectedModules.length;
-
-    // Base según cantidad de módulos
     let modulePrice = 0;
     if (moduleCount <= 3) {
       modulePrice = 17000;
@@ -145,20 +146,12 @@ export default function CotizadorPage() {
     } else if (moduleCount >= 9) {
       modulePrice = 29000;
     }
-
-    // Extra costo por rango de usuarios: si es mayor a "1 usuario", +2000
     const extraUsersCost = users > 1 ? 2000 : 0;
-
-    // Extra costo por rango de órdenes: si se elige un rango mayor al mínimo, +3500
     const extraOrdersCost = orders > orderRanges[0].value ? 3500 : 0;
-
-    // Costo de licencia por usuario
     const selectedLicense = licenseOptions.find(
       (opt) => opt.value === licenseType
     );
     const licenseCost = selectedLicense ? selectedLicense.cost : 225;
-
-    // Se suma el costo de licencia multiplicado por el número de usuarios
     const total =
       modulePrice +
       users * 50 +
@@ -166,9 +159,21 @@ export default function CotizadorPage() {
       extraUsersCost +
       extraOrdersCost +
       users * licenseCost;
-
     setQuote(total.toFixed(2));
   }, [authChecked, users, selectedModules, orders, licenseType]);
+
+  // Cálculo de horas estimadas
+  useEffect(() => {
+    if (!authChecked) return;
+    // Puedes alternar entre el modelo "max" o "sum" comentando uno y descomentando el otro.
+    let hours;
+    if (hoursModel === "max") {
+      hours = calculateHoursMax(selectedModules.length, users, orders);
+    } else {
+      hours = calculateHoursSum(selectedModules.length, users, orders);
+    }
+    setEstimatedHours(hours);
+  }, [authChecked, users, selectedModules, orders, hoursModel]);
 
   if (!authChecked) return null;
 
@@ -181,7 +186,7 @@ export default function CotizadorPage() {
     );
   };
 
-  // Obtiene las etiquetas para mostrar en el Resumen
+  // Helpers para mostrar etiquetas en el resumen
   const selectedUserLabel = selectedUserRange(users);
   const selectedOrderLabel = selectedOrderRange(orders);
   const selectedLicenseLabel =
@@ -213,7 +218,7 @@ export default function CotizadorPage() {
       <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 5 }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>
-            {/* Columna Izquierda */}
+            {/* Columna Izquierda: Formulario del Cotizador */}
             <Grid item xs={12} md={8}>
               <Paper
                 elevation={1}
@@ -360,7 +365,7 @@ export default function CotizadorPage() {
               </Paper>
             </Grid>
 
-            {/* Columna Derecha: Resumen */}
+            {/* Columna Derecha: Resumen, Costo y Horas */}
             <Grid item xs={12} md={4}>
               <Box
                 sx={{
@@ -379,7 +384,7 @@ export default function CotizadorPage() {
                   Resumen
                 </Typography>
                 <Typography variant="body2" color="text.primary">
-                  <strong>Usuarios:</strong> {selectedUserLabel}
+                  <strong>Usuarios:</strong> {selectedUserRange(users)}
                 </Typography>
                 <Typography variant="body2" color="text.primary">
                   <strong>Licencia:</strong> {selectedLicenseLabel}
@@ -388,7 +393,8 @@ export default function CotizadorPage() {
                   <strong>Módulos:</strong> {selectedModules.length}
                 </Typography>
                 <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-                  <strong>Órdenes/Facturas:</strong> {selectedOrderLabel}
+                  <strong>Órdenes/Facturas:</strong>{" "}
+                  {selectedOrderRange(orders)}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 <Typography
@@ -406,9 +412,36 @@ export default function CotizadorPage() {
                 >
                   *Costo estimado. Puede variar según requisitos específicos.
                 </Typography>
-                <Box
-                  sx={{ display: "flex", flexDirection: "column", gap: 1 }}
-                ></Box>
+
+                {/* Selección de modelo de horas */}
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel id="hours-model-label" color="primary">
+                    Modelo de Horas
+                  </InputLabel>
+                  <Select
+                    labelId="hours-model-label"
+                    value={hoursModel}
+                    label="Modelo de Horas"
+                    onChange={(e) => setHoursModel(e.target.value)}
+                    color="primary"
+                  >
+                    <MenuItem value="max">Máximo entre factores</MenuItem>
+                    <MenuItem value="sum">Suma de incrementos</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+                  <strong>Horas estimadas:</strong> {estimatedHours} horas
+                </Typography>
+
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                  <Button variant="contained" color="primary" fullWidth>
+                    Comprar ahora
+                  </Button>
+                  <Button variant="outlined" color="primary" fullWidth>
+                    Enviar/Imprimir la cotización
+                  </Button>
+                </Box>
               </Box>
             </Grid>
           </Grid>
@@ -418,10 +451,63 @@ export default function CotizadorPage() {
   );
 }
 
-/** Helpers: para mostrar las etiquetas de los rangos */
+/** Helpers: para obtener la etiqueta de los rangos seleccionados */
 function selectedUserRange(users) {
   return userRanges.find((range) => range.value === users)?.label || "";
 }
 function selectedOrderRange(orders) {
   return orderRanges.find((range) => range.value === orders)?.label || "";
+}
+
+/**
+ * Modelo 1: Tomar el máximo entre los 3 factores
+ * Calcula horas estimadas para cada factor y retorna el máximo.
+ */
+function calculateHoursMax(modulesCount, users, orders) {
+  let hoursModules = 25;
+  if (modulesCount === 0) hoursModules = 25;
+  else if (modulesCount >= 1 && modulesCount <= 2) hoursModules = 30;
+  else if (modulesCount >= 3 && modulesCount <= 4) hoursModules = 45;
+  else if (modulesCount >= 5 && modulesCount <= 6) hoursModules = 60;
+  else if (modulesCount >= 7 && modulesCount <= 8) hoursModules = 80;
+  else if (modulesCount >= 9) hoursModules = 100;
+
+  let hoursUsers = 25;
+  if (users === 1) hoursUsers = 25;
+  else if (users >= 2 && users <= 5) hoursUsers = 30;
+  else if (users >= 6 && users <= 10) hoursUsers = 45;
+  else if (users >= 11 && users <= 20) hoursUsers = 60;
+  else if (users >= 21 && users <= 50) hoursUsers = 80;
+  else if (users >= 51) hoursUsers = 100;
+
+  let hoursOrders = 25;
+  if (orders <= 50) hoursOrders = 25;
+  else if (orders > 50 && orders <= 100) hoursOrders = 30;
+  else if (orders > 100 && orders <= 200) hoursOrders = 45;
+  else if (orders > 200 && orders <= 350) hoursOrders = 60;
+  else if (orders > 350) hoursOrders = 100;
+
+  return Math.max(hoursModules, hoursUsers, hoursOrders);
+}
+
+/**
+ * Modelo 2: Sumar incrementos
+ * Base de 25 horas, luego se suman incrementos según cada factor.
+ */
+function calculateHoursSum(modulesCount, users, orders) {
+  let hours = 25; // base
+  // Incremento por módulos
+  if (modulesCount >= 1 && modulesCount <= 2) hours += 5;
+  else if (modulesCount >= 3 && modulesCount <= 4) hours += 20;
+  else if (modulesCount >= 5 && modulesCount <= 6) hours += 35;
+  else if (modulesCount >= 7 && modulesCount <= 8) hours += 55;
+  else if (modulesCount >= 9) hours += 75;
+  // Incremento por usuarios: si hay más de 1 usuario, sumar 10 horas
+  if (users > 1) hours += 10;
+  // Incremento por órdenes: según el rango seleccionado
+  if (orders > 50 && orders <= 100) hours += 10;
+  else if (orders > 100 && orders <= 200) hours += 20;
+  else if (orders > 200 && orders <= 350) hours += 35;
+  else if (orders > 350) hours += 50;
+  return hours;
 }

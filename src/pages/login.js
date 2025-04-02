@@ -2,8 +2,6 @@ import Head from "next/head";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import {
-  AppBar,
-  Toolbar,
   Container,
   Box,
   Typography,
@@ -14,7 +12,6 @@ import {
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// ======== Tema con la misma paleta que usas en tu proyecto ========
 const theme = createTheme({
   palette: {
     primary: {
@@ -74,49 +71,43 @@ export default function LoginPage() {
         <meta name="description" content="Página de Login para Cotizador" />
       </Head>
 
-      {/* Navbar */}
-      <AppBar position="static" elevation={0}>
-        <Toolbar sx={{ bgcolor: "primary.main" }}>
-          <img
-            src="/Tersoft.webp"
-            alt="Tersoft Logo"
-            style={{ height: 40, marginRight: 16 }}
-          />
-          <Typography variant="h6" sx={{ flexGrow: 1, color: "#ffffff" }}>
-            Cotizador Odoo
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
-      {/* Contenedor centrado sin scroll vertical */}
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          height: "calc(100vh - 64px)", // Se asume 64px de altura para la AppBar
-          overflow: "hidden",
+          height: "100vh",
           bgcolor: "background.default",
         }}
       >
         <Container maxWidth="sm">
           <Paper
-            elevation={1}
+            elevation={3}
             sx={{
               p: { xs: 3, md: 5 },
               borderRadius: 2,
+              textAlign: "center",
               backgroundColor: "#ffffff",
             }}
           >
+            {/* Logo centrado */}
+            <Box sx={{ mb: 2 }}>
+              <img
+                src="/Tersoft.webp"
+                alt="Tersoft Logo"
+                style={{ height: 256, objectFit: "contain" }}
+              />
+            </Box>
+
             <Typography
               variant="h4"
               fontWeight="bold"
               gutterBottom
               color="text.primary"
-              textAlign="center"
             >
               Iniciar Sesión
             </Typography>
+
             <Divider sx={{ mb: 3 }} />
 
             {errorMsg && (
