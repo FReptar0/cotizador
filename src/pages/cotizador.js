@@ -17,7 +17,11 @@ import {
   MenuItem,
   Grid,
   Button,
+  IconButton,
+  Menu,
+  TextField,
 } from "@mui/material";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 // Configuración del tema con la nueva paleta
@@ -54,6 +58,7 @@ const odooModules = [
   { name: "Eventos" },
   { name: "Facturación" },
   { name: "Field Service" },
+  { name: "Flota" },
   { name: "Gestión de Almacenes" },
   { name: "Gestión de Gastos" },
   { name: "Helpdesk" },
@@ -62,7 +67,6 @@ const odooModules = [
   { name: "Mantenimiento" },
   { name: "Marketing" },
   { name: "Mesa de trabajo" },
-  { name: "Planificación de la Producción" },
   { name: "Punto de Venta" },
   { name: "Proyectos" },
   { name: "Recursos Humanos" },
@@ -92,20 +96,6 @@ const orderRanges = [
   { label: "Más de 350", value: 400 },
 ];
 
-// Opciones para el tipo de licencia
-const licenseOptions = [
-  {
-    label: "Odoo Estándar (MX$225 por usuario + impuestos)",
-    value: "estandar",
-    cost: 225,
-  },
-  {
-    label: "Odoo.sh (MX$342 por usuario + impuestos)",
-    value: "odoo_sh",
-    cost: 342,
-  },
-];
-
 export default function CotizadorPage() {
   const router = useRouter();
 
@@ -116,11 +106,21 @@ export default function CotizadorPage() {
   const [users, setUsers] = useState(1);
   const [selectedModules, setSelectedModules] = useState([]);
   const [orders, setOrders] = useState(orderRanges[0].value);
-  const [licenseType, setLicenseType] = useState("estandar");
   const [quote, setQuote] = useState(17000); // Precio base inicial
   // Estado para el modelo de estimación de horas: "max" o "sum"
   const [hoursModel, setHoursModel] = useState("max");
   const [estimatedHours, setEstimatedHours] = useState(25);
+
+  // Estados para los datos del cliente
+  const [customerName, setCustomerName] = useState("");
+  const [customerCompany, setCustomerCompany] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+
+  // Estado para el menú del usuario en la navbar
+  const [anchorEl, setAnchorEl] = useState(null);
 
   // Verificar login
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function CotizadorPage() {
     }
   }, [router]);
 
-  // Cálculo del costo (ya existente)
+  // Cálculo del costo
   useEffect(() => {
     if (!authChecked) return;
     const moduleCount = selectedModules.length;
@@ -148,24 +148,18 @@ export default function CotizadorPage() {
     }
     const extraUsersCost = users > 1 ? 2000 : 0;
     const extraOrdersCost = orders > orderRanges[0].value ? 3500 : 0;
-    const selectedLicense = licenseOptions.find(
-      (opt) => opt.value === licenseType
-    );
-    const licenseCost = selectedLicense ? selectedLicense.cost : 225;
     const total =
       modulePrice +
       users * 50 +
       orders * 0.5 +
       extraUsersCost +
-      extraOrdersCost +
-      users * licenseCost;
+      extraOrdersCost;
     setQuote(total.toFixed(2));
-  }, [authChecked, users, selectedModules, orders, licenseType]);
+  }, [authChecked, users, selectedModules, orders]);
 
   // Cálculo de horas estimadas
   useEffect(() => {
     if (!authChecked) return;
-    // Puedes alternar entre el modelo "max" o "sum" comentando uno y descomentando el otro.
     let hours;
     if (hoursModel === "max") {
       hours = calculateHoursMax(selectedModules.length, users, orders);
@@ -186,21 +180,49 @@ export default function CotizadorPage() {
     );
   };
 
+  // Funciones para el menú del usuario en la navbar
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    router.push("/login");
+  };
+
   // Helpers para mostrar etiquetas en el resumen
   const selectedUserLabel = selectedUserRange(users);
   const selectedOrderLabel = selectedOrderRange(orders);
-  const selectedLicenseLabel =
-    licenseOptions.find((opt) => opt.value === licenseType)?.label || "";
+
+  // Funciones de validación
+  const validateEmail = (email) => {
+    const regex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!regex.test(email)) {
+      return "Por favor ingresa un email válido";
+    }
+    return "";
+  };
+
+  const validatePhone = (phone) => {
+    // Permite opcionalmente el símbolo + y entre 7 a 15 dígitos
+    const regex = /^\+?\d{7,15}$/;
+    if (!regex.test(phone)) {
+      return "Por favor ingresa un número de teléfono válido";
+    }
+    return "";
+  };
 
   return (
     <ThemeProvider theme={theme}>
       <Head>
-        <title>Estimador de Proyecto | Tersoft.mx</title>
+        <title>Cotizador de Proyecto | Tersoft.mx</title>
         <meta name="description" content="Cotizador Odoo y Sage 300" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      {/* Navbar */}
+      {/* Navbar con icono de usuario */}
       <AppBar position="static" elevation={0}>
         <Toolbar sx={{ bgcolor: "primary.main" }}>
           <img
@@ -209,17 +231,32 @@ export default function CotizadorPage() {
             style={{ height: 40, marginRight: 16 }}
           />
           <Typography variant="h6" sx={{ flexGrow: 1, color: "#ffffff" }}>
-            Cotizador Odoo
+            Cotizador para proyectos Odoo
           </Typography>
+          <IconButton color="inherit" onClick={handleMenuOpen}>
+            <AccountCircleIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+            MenuProps={{
+              disableScrollLock: true,
+            }}
+          >
+            <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
       {/* Contenedor principal */}
       <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 5 }}>
         <Container maxWidth="lg">
-          <Grid container spacing={4}>
-            {/* Columna Izquierda: Formulario del Cotizador */}
-            <Grid item xs={12} md={8}>
+          <Grid container spacing={4} wrap="nowrap" sx={{ minWidth: "900px" }}>
+            {/* Columna Izquierda (Formulario) */}
+            <Grid item sx={{ width: "60%" }}>
               <Paper
                 elevation={1}
                 sx={{
@@ -244,6 +281,56 @@ export default function CotizadorPage() {
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
 
+                {/* Datos del Cliente */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ mb: 1 }}
+                    color="text.primary"
+                  >
+                    Datos del cliente
+                  </Typography>
+                  <TextField
+                    label="Nombre"
+                    variant="outlined"
+                    fullWidth
+                    sx={{ mb: 2 }}
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
+                  <TextField
+                    label="Empresa"
+                    variant="outlined"
+                    fullWidth
+                    sx={{ mb: 2 }}
+                    value={customerCompany}
+                    onChange={(e) => setCustomerCompany(e.target.value)}
+                  />
+                  <TextField
+                    label="Email"
+                    variant="outlined"
+                    fullWidth
+                    sx={{ mb: 2 }}
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    onBlur={(e) => setEmailError(validateEmail(e.target.value))}
+                    error={Boolean(emailError)}
+                    helperText={emailError}
+                  />
+                  <TextField
+                    label="Teléfono"
+                    variant="outlined"
+                    fullWidth
+                    sx={{ mb: 2 }}
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    onBlur={(e) => setPhoneError(validatePhone(e.target.value))}
+                    error={Boolean(phoneError)}
+                    helperText={phoneError}
+                  />
+                </Box>
+
                 {/* Tamaño de la empresa (usuarios) */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
@@ -254,7 +341,7 @@ export default function CotizadorPage() {
                   >
                     Tamaño de tu empresa (en usuarios)
                   </Typography>
-                  <FormControl fullWidth>
+                  <FormControl fullWidth variant="outlined">
                     <InputLabel id="user-range-label" color="primary">
                       Usuarios
                     </InputLabel>
@@ -274,37 +361,7 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
-                {/* Tipo de licencia */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    sx={{ mb: 1 }}
-                    color="text.primary"
-                  >
-                    Tipo de licencia
-                  </Typography>
-                  <FormControl fullWidth>
-                    <InputLabel id="license-label" color="primary">
-                      Selecciona una licencia
-                    </InputLabel>
-                    <Select
-                      labelId="license-label"
-                      value={licenseType}
-                      label="Selecciona una licencia"
-                      onChange={(e) => setLicenseType(e.target.value)}
-                      color="primary"
-                    >
-                      {licenseOptions.map((opt) => (
-                        <MenuItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                {/* Módulos */}
+                {/* Sección: Módulos */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -314,23 +371,67 @@ export default function CotizadorPage() {
                   >
                     Selecciona los módulos necesarios
                   </Typography>
-                  <Grid container spacing={1}>
-                    {odooModules.map((module) => (
-                      <Grid item xs={12} sm={6} md={4} key={module.name}>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              onChange={() => handleModuleChange(module.name)}
-                              checked={selectedModules.includes(module.name)}
-                              color="primary"
-                            />
-                          }
-                          label={module.name}
-                          sx={{ color: "text.primary" }}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
+                  <Box
+                    component="table"
+                    sx={{
+                      width: "100%",
+                      borderCollapse: "separate",
+                      borderSpacing: "16px 8px",
+                    }}
+                  >
+                    <tbody>
+                      {chunkArray(
+                        [...odooModules].sort((a, b) =>
+                          a.name.localeCompare(b.name)
+                        ),
+                        3
+                      ).map((row, rowIndex) => (
+                        <Box component="tr" key={rowIndex}>
+                          {row.map((module) => (
+                            <Box
+                              component="td"
+                              key={module.name}
+                              sx={{
+                                width: "33%",
+                                verticalAlign: "middle",
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    onChange={() =>
+                                      handleModuleChange(module.name)
+                                    }
+                                    checked={selectedModules.includes(
+                                      module.name
+                                    )}
+                                    color="primary"
+                                  />
+                                }
+                                label={module.name}
+                                sx={{
+                                  alignItems: "center",
+                                  "& .MuiFormControlLabel-label": {
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  },
+                                }}
+                              />
+                            </Box>
+                          ))}
+                          {row.length < 3 &&
+                            [...Array(3 - row.length)].map((_, i) => (
+                              <Box
+                                component="td"
+                                key={`empty-${i}`}
+                                sx={{ width: "33%" }}
+                              />
+                            ))}
+                        </Box>
+                      ))}
+                    </tbody>
+                  </Box>
                 </Box>
 
                 {/* Órdenes/Facturas */}
@@ -343,15 +444,15 @@ export default function CotizadorPage() {
                   >
                     Cantidad de Órdenes/Facturas mensuales
                   </Typography>
-                  <FormControl fullWidth>
+                  <FormControl fullWidth variant="outlined">
                     <InputLabel id="orders-range-label" color="primary">
                       Selecciona un rango
                     </InputLabel>
                     <Select
                       labelId="orders-range-label"
                       value={orders}
-                      label="Cantidad"
                       onChange={(e) => setOrders(parseInt(e.target.value))}
+                      label="Selecciona un rango"
                       color="primary"
                     >
                       {orderRanges.map((range) => (
@@ -365,13 +466,13 @@ export default function CotizadorPage() {
               </Paper>
             </Grid>
 
-            {/* Columna Derecha: Resumen, Costo y Horas */}
-            <Grid item xs={12} md={4}>
-              <Box
+            {/* Columna Derecha (Resumen) */}
+            <Grid item sx={{ width: "40%" }}>
+              <Paper
+                elevation={1}
                 sx={{
                   p: 3,
                   borderRadius: 2,
-                  border: "1px solid #dee2e6",
                   backgroundColor: "#f8f9fa",
                 }}
               >
@@ -385,9 +486,6 @@ export default function CotizadorPage() {
                 </Typography>
                 <Typography variant="body2" color="text.primary">
                   <strong>Usuarios:</strong> {selectedUserRange(users)}
-                </Typography>
-                <Typography variant="body2" color="text.primary">
-                  <strong>Licencia:</strong> {selectedLicenseLabel}
                 </Typography>
                 <Typography variant="body2" color="text.primary">
                   <strong>Módulos:</strong> {selectedModules.length}
@@ -405,16 +503,21 @@ export default function CotizadorPage() {
                 >
                   MX${quote}
                 </Typography>
+                <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+                  <strong>Horas estimadas:</strong> {estimatedHours} horas
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{}}>
+                  *Costo estimado. Puede variar según requisitos específicos.
+                </Typography>
                 <Typography
                   variant="body2"
                   color="text.secondary"
                   sx={{ mb: 2 }}
                 >
-                  *Costo estimado. Puede variar según requisitos específicos.
+                  *Horas estimadas. Pueden variar según requisitos específicos.
                 </Typography>
 
-                {/* Selección de modelo de horas */}
-                <FormControl fullWidth sx={{ mb: 2 }}>
+                <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
                   <InputLabel id="hours-model-label" color="primary">
                     Modelo de Horas
                   </InputLabel>
@@ -430,19 +533,12 @@ export default function CotizadorPage() {
                   </Select>
                 </FormControl>
 
-                <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
-                  <strong>Horas estimadas:</strong> {estimatedHours} horas
-                </Typography>
-
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                   <Button variant="contained" color="primary" fullWidth>
-                    Comprar ahora
-                  </Button>
-                  <Button variant="outlined" color="primary" fullWidth>
-                    Enviar/Imprimir la cotización
+                    Enviar cotización
                   </Button>
                 </Box>
-              </Box>
+              </Paper>
             </Grid>
           </Grid>
         </Container>
@@ -459,10 +555,7 @@ function selectedOrderRange(orders) {
   return orderRanges.find((range) => range.value === orders)?.label || "";
 }
 
-/**
- * Modelo 1: Tomar el máximo entre los 3 factores
- * Calcula horas estimadas para cada factor y retorna el máximo.
- */
+/** Modelo 1: Tomar el máximo entre los 3 factores */
 function calculateHoursMax(modulesCount, users, orders) {
   let hoursModules = 25;
   if (modulesCount === 0) hoursModules = 25;
@@ -490,24 +583,27 @@ function calculateHoursMax(modulesCount, users, orders) {
   return Math.max(hoursModules, hoursUsers, hoursOrders);
 }
 
-/**
- * Modelo 2: Sumar incrementos
- * Base de 25 horas, luego se suman incrementos según cada factor.
- */
+/** Modelo 2: Sumar incrementos */
 function calculateHoursSum(modulesCount, users, orders) {
   let hours = 25; // base
-  // Incremento por módulos
   if (modulesCount >= 1 && modulesCount <= 2) hours += 5;
   else if (modulesCount >= 3 && modulesCount <= 4) hours += 20;
   else if (modulesCount >= 5 && modulesCount <= 6) hours += 35;
   else if (modulesCount >= 7 && modulesCount <= 8) hours += 55;
   else if (modulesCount >= 9) hours += 75;
-  // Incremento por usuarios: si hay más de 1 usuario, sumar 10 horas
   if (users > 1) hours += 10;
-  // Incremento por órdenes: según el rango seleccionado
   if (orders > 50 && orders <= 100) hours += 10;
   else if (orders > 100 && orders <= 200) hours += 20;
   else if (orders > 200 && orders <= 350) hours += 35;
   else if (orders > 350) hours += 50;
   return hours;
+}
+
+/** Función para dividir un array en "chunks" de tamaño fijo */
+function chunkArray(array, size) {
+  const chunked = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunked.push(array.slice(i, i + size));
+  }
+  return chunked;
 }
