@@ -695,9 +695,16 @@ export default function CotizadorPage() {
                       onChange={(e) => setHosteo(e.target.value)}
                       color="primary"
                     >
-                      <MenuItem value="Odoo Online">Odoo Online</MenuItem>
-                      <MenuItem value="Odoo.sh">Odoo.sh</MenuItem>
-                      <MenuItem value="On-Premise">On-Premise</MenuItem>
+                      <MenuItem value="Odoo Online">
+                        Odoo Online (versión estándar, limitada a módulos
+                        oficiales)
+                      </MenuItem>
+                      <MenuItem value="Odoo.sh">
+                        Odoo.sh (flexible, personalizable, en la nube)
+                      </MenuItem>
+                      <MenuItem value="On-Premise">
+                        On-Premise (en servidores propios o de terceros)
+                      </MenuItem>
                     </Select>
                   </FormControl>
                 </Box>
