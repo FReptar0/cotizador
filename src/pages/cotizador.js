@@ -251,13 +251,13 @@ export default function CotizadorPage() {
       {/* Contenedor principal */}
       <Box sx={{ bgcolor: "background.default" }}>
         <Container maxWidth="lg" sx={{ py: 3 }}>
-          <Grid container spacing={2} wrap="nowrap" sx={{ minWidth: "900px" }}>
+          <Grid container spacing={2}>
             {/* Columna Izquierda (Formulario) */}
-            <Grid item sx={{ width: "60%" }}>
+            <Grid item xs={12} md={8}>
               <Paper
                 elevation={1}
                 sx={{
-                  p: { xs: 3, md: 5 },
+                  p: { xs: 2, md: 5 },
                   borderRadius: 2,
                   backgroundColor: "#ffffff",
                 }}
@@ -386,7 +386,10 @@ export default function CotizadorPage() {
                             <Box
                               component="td"
                               key={module.name}
-                              sx={{ width: "33%", verticalAlign: "middle" }}
+                              sx={{
+                                width: { xs: "100%", md: "33%" },
+                                verticalAlign: "middle",
+                              }}
                             >
                               <FormControlLabel
                                 control={
@@ -411,12 +414,15 @@ export default function CotizadorPage() {
                               />
                             </Box>
                           ))}
+                          {/* Relleno de celdas vacías en escritorio */}
                           {row.length < 3 &&
                             [...Array(3 - row.length)].map((_, i) => (
                               <Box
                                 component="td"
                                 key={`empty-${i}`}
-                                sx={{ width: "33%" }}
+                                sx={{
+                                  width: { xs: "100%", md: "33%" },
+                                }}
                               />
                             ))}
                         </Box>
@@ -750,18 +756,17 @@ export default function CotizadorPage() {
               </Paper>
             </Grid>
 
-            {/* Columna Derecha (espacio reservado, no se modifica) */}
-            <Grid item sx={{ width: "40%" }} />
+            {/* Columna Derecha "vacía" en desktop */}
+            <Grid item xs={0} md={4} />
           </Grid>
         </Container>
 
-        {/* Resumen flotante: se coloca fuera del Container para que esté fijo en la ventana */}
+        {/* Resumen flotante (solo en escritorio) */}
         <Box
           sx={{
             position: "fixed",
             top: 90,
-            // Se posiciona a la derecha del formulario: el contenedor (1200px) centrado y el formulario ocupa 60% (720px)
-            left: "calc((100% - 1200px)/2 + 740px)",
+            left: "calc((100% - 1200px)/2 + 900px)",
             width: 400,
             display: { xs: "none", md: "block" },
           }}
@@ -797,7 +802,6 @@ export default function CotizadorPage() {
             >
               MX$ {quote}
             </Typography>
-
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               *Costo estimado. Puede variar según requisitos específicos.
             </Typography>
@@ -805,7 +809,67 @@ export default function CotizadorPage() {
               *Horas estimadas. Puede variar según requisitos específicos.
             </Typography>
             <Divider sx={{ mb: 2 }} />
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                mt: 3,
+              }}
+            >
+              <Button variant="contained" color="primary" fullWidth>
+                ENVIAR COTIZACIÓN
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
 
+        {/* Resumen al final (solo en móviles) */}
+        <Box
+          sx={{
+            display: { xs: "block", md: "none" },
+            px: 2,
+            pb: 2,
+          }}
+        >
+          <Paper
+            elevation={1}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              backgroundColor: "#f8f9fa",
+            }}
+          >
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color="text.primary"
+              sx={{ mb: 2 }}
+            >
+              Resumen
+            </Typography>
+            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+              <strong>Módulos seleccionados:</strong> {selectedModules.length}
+            </Typography>
+            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+              <strong>Horas estimadas:</strong> {estimatedHours} horas
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Typography
+              variant="h5"
+              color="success.main"
+              fontWeight="bold"
+              sx={{ mb: 1 }}
+            >
+              MX$ {quote}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              *Costo estimado. Puede variar según requisitos específicos.
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              *Horas estimadas. Puede variar según requisitos específicos.
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
             <Box
               sx={{
                 display: "flex",
