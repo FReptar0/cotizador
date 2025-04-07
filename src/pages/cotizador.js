@@ -22,7 +22,6 @@ import {
   TextField,
   RadioGroup,
   Radio,
-  FormLabel,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -48,14 +47,6 @@ const theme = createTheme({
     },
   },
 });
-
-// Tamaño de la empresa (usuarios)
-const userRanges = [
-  { label: "2 a 5 usuarios", value: 5 },
-  { label: "6 a 20 usuarios", value: 20 },
-  { label: "21 a 50 usuarios", value: 50 },
-  { label: "51 o más usuarios", value: 100 },
-];
 
 // Órdenes/Facturas mensuales
 const orderRanges = [
@@ -94,6 +85,13 @@ const odooModules = [
   { name: "Ventas" },
 ];
 
+// Precios por usuario según el tipo de hosteo
+const hostingUserCosts = {
+  "Odoo Online": { current: 225, old: 285 },
+  "Odoo.sh": { current: 342, old: 425 },
+  "On-Premise": { current: 0, old: 0 },
+};
+
 export default function CotizadorPage() {
   const router = useRouter();
 
@@ -111,11 +109,13 @@ export default function CotizadorPage() {
   const [reportes, setReportes] = useState("no");
 
   // Otros campos informativos
-  const [companySize, setCompanySize] = useState(userRanges[0].value);
   const [orderRange, setOrderRange] = useState(orderRanges[0].value);
   const [multimoneda, setMultimoneda] = useState("no");
   const [hosteo, setHosteo] = useState("Odoo Online");
   const [fechaInicio, setFechaInicio] = useState("Aún no tengo claro");
+
+  // Nuevo campo: Número de usuarios (licencias)
+  const [numUsuarios, setNumUsuarios] = useState(1);
 
   // Datos del cliente
   const [customerName, setCustomerName] = useState("");
@@ -131,6 +131,7 @@ export default function CotizadorPage() {
   // Resultados
   const [quote, setQuote] = useState(0);
   const [estimatedHours, setEstimatedHours] = useState(0);
+  const [licenseQuote, setLicenseQuote] = useState(0);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -178,6 +179,11 @@ export default function CotizadorPage() {
     const costoTotal = horasTotales * 500;
     setEstimatedHours(horasTotales);
     setQuote(costoTotal.toFixed(2));
+
+    // Calcular el costo mensual de licencias
+    const hostingCost = hostingUserCosts[hosteo]?.current || 0;
+    const costoLicencias = numUsuarios * hostingCost;
+    setLicenseQuote(costoLicencias.toFixed(2));
   }, [
     authChecked,
     selectedModules,
@@ -188,6 +194,8 @@ export default function CotizadorPage() {
     integraciones,
     personalizaciones,
     reportes,
+    hosteo,
+    numUsuarios,
   ]);
 
   if (!authChecked) return null;
@@ -230,7 +238,7 @@ export default function CotizadorPage() {
             style={{ height: 40, marginRight: 16 }}
           />
           <Typography variant="h6" sx={{ flexGrow: 1, color: "#ffffff" }}>
-            Cotizador para proyectos Odoo
+            Cotizador para proyectos Odoo | Tersoft
           </Typography>
           <IconButton color="inherit" onClick={handleMenuOpen}>
             <AccountCircleIcon />
@@ -326,7 +334,7 @@ export default function CotizadorPage() {
                   />
                 </Box>
 
-                {/* Tamaño de la empresa */}
+                {/* Número de usuarios (licencias) */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -334,20 +342,75 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Tamaño de la empresa (usuarios)
+                    Número de usuarios (licencias)
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    type="number"
+                    value={numUsuarios}
+                    onChange={(e) => setNumUsuarios(parseInt(e.target.value))}
+                    inputProps={{ min: 1 }}
+                  />
+                </Box>
+
+                {/* Tipo de hosteo */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    Tipo de hosteo
                   </Typography>
                   <FormControl fullWidth variant="outlined">
-                    <InputLabel id="company-size-label" color="primary">
+                    <InputLabel id="hosteo-label" color="primary">
+                      Selecciona un tipo
+                    </InputLabel>
+                    <Select
+                      labelId="hosteo-label"
+                      value={hosteo}
+                      label="Selecciona un tipo"
+                      onChange={(e) => setHosteo(e.target.value)}
+                      color="primary"
+                    >
+                      <MenuItem value="Odoo Online">
+                        Odoo Online (versión estándar, limitada a módulos
+                        oficiales)
+                      </MenuItem>
+                      <MenuItem value="Odoo.sh">
+                        Odoo.sh (flexible, personalizable, en la nube)
+                      </MenuItem>
+                      <MenuItem value="On-Premise">
+                        On-Premise (en servidores propios o de terceros)
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                {/* Órdenes / Facturas mensuales */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    Órdenes / Facturas mensuales
+                  </Typography>
+                  <FormControl fullWidth variant="outlined">
+                    <InputLabel id="orders-range-label" color="primary">
                       Selecciona un rango
                     </InputLabel>
                     <Select
-                      labelId="company-size-label"
-                      value={companySize}
+                      labelId="orders-range-label"
+                      value={orderRange}
+                      onChange={(e) => setOrderRange(parseInt(e.target.value))}
                       label="Selecciona un rango"
-                      onChange={(e) => setCompanySize(parseInt(e.target.value))}
                       color="primary"
                     >
-                      {userRanges.map((range) => (
+                      {orderRanges.map((range) => (
                         <MenuItem key={range.value} value={range.value}>
                           {range.label}
                         </MenuItem>
@@ -356,7 +419,6 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
-                {/* Módulos necesarios */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -414,7 +476,6 @@ export default function CotizadorPage() {
                               />
                             </Box>
                           ))}
-                          {/* Relleno de celdas vacías en escritorio */}
                           {row.length < 3 &&
                             [...Array(3 - row.length)].map((_, i) => (
                               <Box
@@ -429,36 +490,6 @@ export default function CotizadorPage() {
                       ))}
                     </tbody>
                   </Box>
-                </Box>
-
-                {/* Órdenes / Facturas mensuales */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="text.primary"
-                    sx={{ mb: 1 }}
-                  >
-                    Órdenes / Facturas mensuales
-                  </Typography>
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel id="orders-range-label" color="primary">
-                      Selecciona un rango
-                    </InputLabel>
-                    <Select
-                      labelId="orders-range-label"
-                      value={orderRange}
-                      onChange={(e) => setOrderRange(parseInt(e.target.value))}
-                      label="Selecciona un rango"
-                      color="primary"
-                    >
-                      {orderRanges.map((range) => (
-                        <MenuItem key={range.value} value={range.value}>
-                          {range.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
                 </Box>
 
                 {/* Parámetros del proyecto */}
@@ -680,42 +711,7 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
-                {/* 9. Tipo de hosteo */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="text.primary"
-                    sx={{ mb: 1 }}
-                  >
-                    Tipo de hosteo
-                  </Typography>
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel id="hosteo-label" color="primary">
-                      Selecciona un tipo
-                    </InputLabel>
-                    <Select
-                      labelId="hosteo-label"
-                      value={hosteo}
-                      label="Selecciona un tipo"
-                      onChange={(e) => setHosteo(e.target.value)}
-                      color="primary"
-                    >
-                      <MenuItem value="Odoo Online">
-                        Odoo Online (versión estándar, limitada a módulos
-                        oficiales)
-                      </MenuItem>
-                      <MenuItem value="Odoo.sh">
-                        Odoo.sh (flexible, personalizable, en la nube)
-                      </MenuItem>
-                      <MenuItem value="On-Premise">
-                        On-Premise (en servidores propios o de terceros)
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                {/* 10. Fecha estimada */}
+                {/* 9. Fecha estimada */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -794,19 +790,25 @@ export default function CotizadorPage() {
               <strong>Horas estimadas:</strong> {estimatedHours} horas
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Typography
-              variant="h5"
-              color="success.main"
-              fontWeight="bold"
-              sx={{ mb: 1 }}
-            >
-              MX$ {quote}
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
+                Costo de implementación:
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
+                MX$ {quote}
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
+              <strong>Costo mensual de licencias:</strong> MX$ {licenseQuote}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              *Costo estimado. Puede variar según requisitos específicos.
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              *Horas estimadas. Puede variar según requisitos específicos.
+              *El costo de implementación es único y el de licencias es mensual.
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box
@@ -855,19 +857,14 @@ export default function CotizadorPage() {
               <strong>Horas estimadas:</strong> {estimatedHours} horas
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Typography
-              variant="h5"
-              color="success.main"
-              fontWeight="bold"
-              sx={{ mb: 1 }}
-            >
-              MX$ {quote}
+            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+              <strong>Costo de implementación:</strong> MX$ {quote}
+            </Typography>
+            <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
+              <strong>Costo mensual de licencias:</strong> MX$ {licenseQuote}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              *Costo estimado. Puede variar según requisitos específicos.
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              *Horas estimadas. Puede variar según requisitos específicos.
+              *El costo de implementación es único y el de licencias es mensual.
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box
