@@ -238,7 +238,7 @@ export default function CotizadorPage() {
             style={{ height: 40, marginRight: 16 }}
           />
           <Typography variant="h6" sx={{ flexGrow: 1, color: "#ffffff" }}>
-            Cotizador para proyectos Odoo
+            Cotizador para proyectos Odoo | Tersoft
           </Typography>
           <IconButton color="inherit" onClick={handleMenuOpen}>
             <AccountCircleIcon />
