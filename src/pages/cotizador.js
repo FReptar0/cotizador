@@ -117,6 +117,10 @@ export default function CotizadorPage() {
   // Nuevo campo: Número de usuarios (licencias)
   const [numUsuarios, setNumUsuarios] = useState(1);
 
+  // Nuevo estado para el archivo de transcripción
+  const [transcriptionFile, setTranscriptionFile] = useState(null);
+  const [fileName, setFileName] = useState("");
+
   // Datos del cliente
   const [customerName, setCustomerName] = useState("");
   const [customerCompany, setCustomerCompany] = useState("");
@@ -141,6 +145,15 @@ export default function CotizadorPage() {
       setAuthChecked(true);
     }
   }, [router]);
+
+  // Manejo del archivo de transcripción
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setTranscriptionFile(file);
+      setFileName(file.name);
+    }
+  };
 
   // Lógica de cálculo
   useEffect(() => {
@@ -334,6 +347,36 @@ export default function CotizadorPage() {
                   />
                 </Box>
 
+                {/* Nuevo: Subir transcripción (archivo TXT) */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    Subir transcripción (archivo TXT)
+                  </Typography>
+                  <Button variant="outlined" component="label">
+                    Seleccionar archivo
+                    <input
+                      type="file"
+                      accept=".txt"
+                      hidden
+                      onChange={handleFileChange}
+                    />
+                  </Button>
+                  {fileName && (
+                    <Typography
+                      variant="body2"
+                      color="text.primary"
+                      sx={{ mt: 1 }}
+                    >
+                      Archivo seleccionado: {fileName}
+                    </Typography>
+                  )}
+                </Box>
+
                 {/* Número de usuarios (licencias) */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
@@ -419,6 +462,7 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
+                {/* Sección de módulos */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
