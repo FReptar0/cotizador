@@ -334,8 +334,6 @@ export default function CotizadorPage() {
                   />
                 </Box>
 
-                {/* Sección de Módulos necesarios */}
-
                 {/* Número de usuarios (licencias) */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
