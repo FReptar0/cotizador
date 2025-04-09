@@ -63,6 +63,7 @@ const odooModules = [
   { name: "Documentos" },
   { name: "Email Marketing" },
   { name: "Encuestas" },
+  { name: "Empleados" },
   { name: "Eventos" },
   { name: "Facturación" },
   { name: "Field Service" },
@@ -277,7 +278,7 @@ export default function CotizadorPage() {
                   width: "100%",
                   maxWidth: "800px", // ancho fijo para el formulario
                   margin: "0 auto",
-                  marginTop: { xs: 0, md: 3 },
+                  mt: "70px",
                 }}
               >
                 <Typography
