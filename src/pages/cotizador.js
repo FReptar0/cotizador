@@ -87,8 +87,8 @@ const odooModules = [
 
 // Precios por usuario según el tipo de hosteo
 const hostingUserCosts = {
-  "Odoo Online": { current: 225, old: 285 },
-  "Odoo.sh": { current: 342, old: 425 },
+  "Odoo Online": { current: 180, old: 285 },
+  "Odoo.sh": { current: 274, old: 425 },
   "On-Premise": { current: 0, old: 0 },
 };
 
@@ -158,6 +158,15 @@ export default function CotizadorPage() {
   // Lógica de cálculo
   useEffect(() => {
     if (!authChecked) return;
+
+    // Si parseInt() da NaN, reemplaza por 0
+    const safeNumUsuarios = isNaN(parseInt(numUsuarios))
+      ? 0
+      : parseInt(numUsuarios);
+    const safeUrgencia = isNaN(parseInt(urgenciaDias))
+      ? 0
+      : parseInt(urgenciaDias);
+
     const n_modulos = selectedModules.length;
     let horasBase = 0;
     if (implementationType === "cliente") {
@@ -185,9 +194,8 @@ export default function CotizadorPage() {
       horasExtra += 8;
     }
 
-    const urgencia = parseInt(urgenciaDias);
-    const urgenciaFactor = urgencia && urgencia <= 30 ? 1.2 : 1.0;
-    // Redondeo al siguiente entero
+    // Aplicar factor de urgencia sólo si safeUrgencia > 0
+    const urgenciaFactor = safeUrgencia > 0 && safeUrgencia <= 30 ? 1.2 : 1.0;
     const horasTotales = Math.ceil((horasBase + horasExtra) * urgenciaFactor);
     const costoTotal = horasTotales * 500;
     setEstimatedHours(horasTotales);
@@ -195,7 +203,7 @@ export default function CotizadorPage() {
 
     // Calcular el costo mensual de licencias
     const hostingCost = hostingUserCosts[hosteo]?.current || 0;
-    const costoLicencias = numUsuarios * hostingCost;
+    const costoLicencias = safeNumUsuarios * hostingCost;
     setLicenseQuote(costoLicencias.toFixed(2));
   }, [
     authChecked,
@@ -392,7 +400,7 @@ export default function CotizadorPage() {
                     variant="outlined"
                     type="number"
                     value={numUsuarios}
-                    onChange={(e) => setNumUsuarios(parseInt(e.target.value))}
+                    onChange={(e) => setNumUsuarios(e.target.value)}
                     inputProps={{ min: 1 }}
                   />
                 </Box>
@@ -834,7 +842,9 @@ export default function CotizadorPage() {
               <strong>Horas estimadas:</strong> {estimatedHours} horas
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Box>
+
+            {/* Sección de costo de implementación */}
+            <Box sx={{ mb: 2 }}>
               <Typography
                 variant="body2"
                 sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
@@ -842,19 +852,36 @@ export default function CotizadorPage() {
                 Costo de implementación:
               </Typography>
               <Typography
-                variant="h4"
+                variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
                 MX$ {quote}
               </Typography>
             </Box>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-              <strong>Costo mensual de licencias:</strong> MX$ {licenseQuote}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              *El costo de implementación es único y el de licencias es mensual.
-            </Typography>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Sección de costo de licencias */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
+                Costo mensual de licencias:
+              </Typography>
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
+                MX$ {licenseQuote}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                *Este costo se paga directamente con Odoo.
+              </Typography>
+            </Box>
+
             <Divider sx={{ mb: 2 }} />
+
             <Box
               sx={{
                 display: "flex",
@@ -901,16 +928,46 @@ export default function CotizadorPage() {
               <strong>Horas estimadas:</strong> {estimatedHours} horas
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
-              <strong>Costo de implementación:</strong> MX$ {quote}
-            </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-              <strong>Costo mensual de licencias:</strong> MX$ {licenseQuote}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              *El costo de implementación es único y el de licencias es mensual.
-            </Typography>
+
+            {/* Costo de implementación */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
+                Costo de implementación:
+              </Typography>
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
+                MX$ {quote}
+              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Costo de licencias */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
+                Costo mensual de licencias:
+              </Typography>
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
+                MX$ {licenseQuote}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                *Este costo se paga directamente con Odoo.
+              </Typography>
+            </Box>
+
             <Divider sx={{ mb: 2 }} />
+
             <Box
               sx={{
                 display: "flex",
