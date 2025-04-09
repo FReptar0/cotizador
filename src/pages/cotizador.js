@@ -2,8 +2,6 @@ import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
-  AppBar,
-  Toolbar,
   Container,
   Box,
   Typography,
@@ -65,6 +63,7 @@ const odooModules = [
   { name: "Documentos" },
   { name: "Email Marketing" },
   { name: "Encuestas" },
+  { name: "Empleados" },
   { name: "Eventos" },
   { name: "Facturación" },
   { name: "Field Service" },
@@ -87,10 +86,26 @@ const odooModules = [
 
 // Precios por usuario según el tipo de hosteo
 const hostingUserCosts = {
-  "Odoo Online": { current: 225, old: 285 },
-  "Odoo.sh": { current: 342, old: 425 },
+  "Odoo Online": { current: 180, old: 285 },
+  "Odoo.sh": { current: 274, old: 425 },
   "On-Premise": { current: 0, old: 0 },
 };
+
+function validateEmail(email) {
+  const regex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  if (!regex.test(email)) {
+    return "Por favor ingresa un correo válido";
+  }
+  return "";
+}
+
+function validatePhone(phone) {
+  const regex = /^[0-9]+$/; // Solo dígitos
+  if (!regex.test(phone)) {
+    return "Por favor ingresa un número de teléfono válido (solo dígitos)";
+  }
+  return "";
+}
 
 export default function CotizadorPage() {
   const router = useRouter();
@@ -114,8 +129,12 @@ export default function CotizadorPage() {
   const [hosteo, setHosteo] = useState("Odoo Online");
   const [fechaInicio, setFechaInicio] = useState("Aún no tengo claro");
 
-  // Nuevo campo: Número de usuarios (licencias)
+  // Número de usuarios (licencias)
   const [numUsuarios, setNumUsuarios] = useState(1);
+
+  // Archivo de transcripción
+  const [transcriptionFile, setTranscriptionFile] = useState(null);
+  const [fileName, setFileName] = useState("");
 
   // Datos del cliente
   const [customerName, setCustomerName] = useState("");
@@ -125,7 +144,7 @@ export default function CotizadorPage() {
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
 
-  // Menú de usuario
+  // Menú de usuario (si se usa en esta página)
   const [anchorEl, setAnchorEl] = useState(null);
 
   // Resultados
@@ -142,9 +161,26 @@ export default function CotizadorPage() {
     }
   }, [router]);
 
+  // Manejo del archivo de transcripción
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setTranscriptionFile(file);
+      setFileName(file.name);
+    }
+  };
+
   // Lógica de cálculo
   useEffect(() => {
     if (!authChecked) return;
+
+    const safeNumUsuarios = isNaN(parseInt(numUsuarios))
+      ? 0
+      : parseInt(numUsuarios);
+    const safeUrgencia = isNaN(parseInt(urgenciaDias))
+      ? 0
+      : parseInt(urgenciaDias);
+
     const n_modulos = selectedModules.length;
     let horasBase = 0;
     if (implementationType === "cliente") {
@@ -172,17 +208,15 @@ export default function CotizadorPage() {
       horasExtra += 8;
     }
 
-    const urgencia = parseInt(urgenciaDias);
-    const urgenciaFactor = urgencia && urgencia <= 30 ? 1.2 : 1.0;
-    // Redondeo al siguiente entero
+    const urgenciaFactor = safeUrgencia > 0 && safeUrgencia <= 30 ? 1.2 : 1.0;
     const horasTotales = Math.ceil((horasBase + horasExtra) * urgenciaFactor);
     const costoTotal = horasTotales * 500;
     setEstimatedHours(horasTotales);
     setQuote(costoTotal.toFixed(2));
 
-    // Calcular el costo mensual de licencias
+    // Costo anual de licencias
     const hostingCost = hostingUserCosts[hosteo]?.current || 0;
-    const costoLicencias = numUsuarios * hostingCost;
+    const costoLicencias = safeNumUsuarios * hostingCost * 12;
     setLicenseQuote(costoLicencias.toFixed(2));
   }, [
     authChecked,
@@ -209,7 +243,7 @@ export default function CotizadorPage() {
     );
   };
 
-  // Menú del usuario
+  // Lógica del menú de usuario (si se usa en esta página)
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -229,34 +263,7 @@ export default function CotizadorPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      {/* Navbar */}
-      <AppBar position="static" elevation={0}>
-        <Toolbar sx={{ bgcolor: "primary.main" }}>
-          <img
-            src="/Tersoft.webp"
-            alt="Tersoft Logo"
-            style={{ height: 40, marginRight: 16 }}
-          />
-          <Typography variant="h6" sx={{ flexGrow: 1, color: "#ffffff" }}>
-            Cotizador para proyectos Odoo | Tersoft
-          </Typography>
-          <IconButton color="inherit" onClick={handleMenuOpen}>
-            <AccountCircleIcon />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
-            MenuProps={{ disableScrollLock: true }}
-          >
-            <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
-
-      {/* Contenedor principal */}
+      {/* Se asume que el Navbar y el Footer se integran desde el Layout global */}
       <Box sx={{ bgcolor: "background.default" }}>
         <Container maxWidth="lg" sx={{ py: 3 }}>
           <Grid container spacing={2}>
@@ -268,6 +275,10 @@ export default function CotizadorPage() {
                   p: { xs: 2, md: 5 },
                   borderRadius: 2,
                   backgroundColor: "#ffffff",
+                  width: "100%",
+                  maxWidth: "800px", // ancho fijo para el formulario
+                  margin: "0 auto",
+                  mt: "70px",
                 }}
               >
                 <Typography
@@ -320,10 +331,19 @@ export default function CotizadorPage() {
                     onBlur={(e) => setEmailError(validateEmail(e.target.value))}
                     error={Boolean(emailError)}
                     helperText={emailError}
+                    FormHelperTextProps={{
+                      sx: {
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "100%",
+                      },
+                    }}
                   />
                   <TextField
                     label="Teléfono"
                     variant="outlined"
+                    type="tel"
                     fullWidth
                     sx={{ mb: 2 }}
                     value={customerPhone}
@@ -331,7 +351,55 @@ export default function CotizadorPage() {
                     onBlur={(e) => setPhoneError(validatePhone(e.target.value))}
                     error={Boolean(phoneError)}
                     helperText={phoneError}
+                    FormHelperTextProps={{
+                      sx: {
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "100%",
+                      },
+                    }}
+                    inputProps={{
+                      inputMode: "numeric",
+                      pattern: "[0-9]*",
+                    }}
+                    onKeyPress={(event) => {
+                      // Permitir solo dígitos (0-9)
+                      if (!/[0-9]/.test(event.key)) {
+                        event.preventDefault();
+                      }
+                    }}
                   />
+                </Box>
+
+                {/* Subir transcripción (archivo TXT) */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    Subir transcripción (archivo TXT)
+                  </Typography>
+                  <Button variant="outlined" component="label">
+                    Seleccionar archivo
+                    <input
+                      type="file"
+                      accept=".txt"
+                      hidden
+                      onChange={handleFileChange}
+                    />
+                  </Button>
+                  {fileName && (
+                    <Typography
+                      variant="body2"
+                      color="text.primary"
+                      sx={{ mt: 1 }}
+                    >
+                      Archivo seleccionado: {fileName}
+                    </Typography>
+                  )}
                 </Box>
 
                 {/* Número de usuarios (licencias) */}
@@ -349,7 +417,7 @@ export default function CotizadorPage() {
                     variant="outlined"
                     type="number"
                     value={numUsuarios}
-                    onChange={(e) => setNumUsuarios(parseInt(e.target.value))}
+                    onChange={(e) => setNumUsuarios(e.target.value)}
                     inputProps={{ min: 1 }}
                   />
                 </Box>
@@ -374,6 +442,10 @@ export default function CotizadorPage() {
                       label="Selecciona un tipo"
                       onChange={(e) => setHosteo(e.target.value)}
                       color="primary"
+                      MenuProps={{
+                        disableScrollLock: true,
+                        PaperProps: { style: { maxHeight: 240 } },
+                      }}
                     >
                       <MenuItem value="Odoo Online">
                         Odoo Online (versión estándar, limitada a módulos
@@ -409,6 +481,10 @@ export default function CotizadorPage() {
                       onChange={(e) => setOrderRange(parseInt(e.target.value))}
                       label="Selecciona un rango"
                       color="primary"
+                      MenuProps={{
+                        disableScrollLock: true,
+                        PaperProps: { style: { maxHeight: 240 } },
+                      }}
                     >
                       {orderRanges.map((range) => (
                         <MenuItem key={range.value} value={range.value}>
@@ -419,6 +495,7 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
+                {/* Sección de módulos */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -481,9 +558,7 @@ export default function CotizadorPage() {
                               <Box
                                 component="td"
                                 key={`empty-${i}`}
-                                sx={{
-                                  width: { xs: "100%", md: "33%" },
-                                }}
+                                sx={{ width: { xs: "100%", md: "33%" } }}
                               />
                             ))}
                         </Box>
@@ -752,7 +827,7 @@ export default function CotizadorPage() {
               </Paper>
             </Grid>
 
-            {/* Columna Derecha "vacía" en desktop */}
+            {/* Columna Derecha (vacía en desktop) */}
             <Grid item xs={0} md={4} />
           </Grid>
         </Container>
@@ -765,6 +840,7 @@ export default function CotizadorPage() {
             left: "calc((100% - 1200px)/2 + 900px)",
             width: 400,
             display: { xs: "none", md: "block" },
+            zIndex: 1,
           }}
         >
           <Paper
@@ -790,7 +866,8 @@ export default function CotizadorPage() {
               <strong>Horas estimadas:</strong> {estimatedHours} horas
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Box>
+
+            <Box sx={{ mb: 2 }}>
               <Typography
                 variant="body2"
                 sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
@@ -798,26 +875,42 @@ export default function CotizadorPage() {
                 Costo de implementación:
               </Typography>
               <Typography
-                variant="h4"
+                variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
                 MX$ {quote}
               </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                *Este costo es una aproximación y puede variar según los
+                requerimientos, para una cotización más precisa, por favor
+                contáctenos.
+              </Typography>
             </Box>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-              <strong>Costo mensual de licencias:</strong> MX$ {licenseQuote}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              *El costo de implementación es único y el de licencias es mensual.
-            </Typography>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
+                Costo anual de licencias:
+              </Typography>
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
+                MX$ {licenseQuote}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                *Este costo se paga directamente con Odoo.
+              </Typography>
+            </Box>
+
             <Divider sx={{ mb: 2 }} />
+
             <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 1,
-                mt: 3,
-              }}
+              sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}
             >
               <Button variant="contained" color="primary" fullWidth>
                 ENVIAR COTIZACIÓN
@@ -827,20 +920,10 @@ export default function CotizadorPage() {
         </Box>
 
         {/* Resumen al final (solo en móviles) */}
-        <Box
-          sx={{
-            display: { xs: "block", md: "none" },
-            px: 2,
-            pb: 2,
-          }}
-        >
+        <Box sx={{ display: { xs: "block", md: "none" }, px: 2, pb: 2 }}>
           <Paper
             elevation={1}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              backgroundColor: "#f8f9fa",
-            }}
+            sx={{ p: 3, borderRadius: 2, backgroundColor: "#f8f9fa" }}
           >
             <Typography
               variant="h6"
@@ -857,41 +940,52 @@ export default function CotizadorPage() {
               <strong>Horas estimadas:</strong> {estimatedHours} horas
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
-              <strong>Costo de implementación:</strong> MX$ {quote}
-            </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
-              <strong>Costo mensual de licencias:</strong> MX$ {licenseQuote}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              *El costo de implementación es único y el de licencias es mensual.
-            </Typography>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
+                Costo de implementación:
+              </Typography>
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
+                MX$ {quote}
+              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
+                Costo anual de licencias:
+              </Typography>
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
+                MX$ {licenseQuote}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                *Este costo se paga directamente con Odoo.
+              </Typography>
+            </Box>
+
             <Divider sx={{ mb: 2 }} />
+
             <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 1,
-                mt: 3,
-              }}
+              sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}
             >
               <Button variant="contained" color="primary" fullWidth>
                 ENVIAR COTIZACIÓN
               </Button>
             </Box>
           </Paper>
-        </Box>
-
-        {/* Footer en negro */}
-        <Box
-          sx={{
-            bgcolor: "#000000",
-            color: "#ffffff",
-            textAlign: "center",
-            py: 2,
-          }}
-        >
-          <Typography variant="body2">TESRFOT 2025</Typography>
         </Box>
       </Box>
     </ThemeProvider>
@@ -905,20 +999,4 @@ function chunkArray(array, size) {
     chunked.push(array.slice(i, i + size));
   }
   return chunked;
-}
-
-function validateEmail(email) {
-  const regex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
-  if (!regex.test(email)) {
-    return "Por favor ingresa un correo válido";
-  }
-  return "";
-}
-
-function validatePhone(phone) {
-  const regex = /^\+?\d{7,15}$/;
-  if (!regex.test(phone)) {
-    return "Por favor ingresa un número de teléfono válido";
-  }
-  return "";
 }
