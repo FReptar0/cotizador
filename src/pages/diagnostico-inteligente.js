@@ -9,6 +9,7 @@ import {
   Divider,
   TextField,
   Button,
+  Link,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import jsPDF from "jspdf";
@@ -71,7 +72,7 @@ export default function DiagnosticoInteligentePage() {
         fueraAlcance: `Se excluyen módulos no requeridos como Manufactura, Punto de Venta y Sitio Web.`,
         entregables: `Documentación, configuración de módulos, capacitaciones, manuales y soporte inicial.`,
         metodo: `1. Análisis de Requisitos\n2. Planificación del Proyecto\n3. Configuración y Personalización\n4. Capacitación de Usuarios\n5. Pruebas y Ajustes\n6. Puesta en Marcha\n7. Soporte y Evaluación`,
-        condiciones: `💰 Costo: $X USD + IVA\n📆 Entrega: 90 días hábiles\n💳 Pago: 50% inicio / 50% entrega\n🏢 Pagos: Consultoría a TERSOFT / Licencias a Odoo`,
+        condiciones: `Costo: $X USD + IVA\nEntrega: 90 días hábiles\nPago: 50% inicio / 50% entrega\nPagos: Consultoría a TERSOFT / Licencias a Odoo`,
       };
 
       setResultado(propuesta);
@@ -85,23 +86,57 @@ export default function DiagnosticoInteligentePage() {
     doc.setFontSize(14);
     doc.text("PROPUESTA DE IMPLEMENTACIÓN DE ODOO", 20, 20);
 
-    const addSection = (title, content, y) => {
+    const addSection = (title, content, yPos) => {
       doc.setFontSize(12);
-      doc.text(title, 20, y);
+      doc.text(title, 20, yPos);
       doc.setFontSize(11);
-      doc.text(doc.splitTextToSize(content, 170), 20, y + 8);
-      return y + 8 + doc.getTextDimensions(content).h + 10;
+      const lines = doc.splitTextToSize(content, 170);
+      doc.text(lines, 20, yPos + 6);
+      return yPos + 6 + lines.length * 6;
     };
 
     let y = 30;
-    y = addSection("1. Procesos Actuales Identificados", resultado.procesos, y);
-    y = addSection("2. Objetivos del Proyecto", resultado.objetivos, y);
-    y = addSection("3. Alcance del Proyecto", resultado.alcance, y);
-    y = addSection("4. Fuera del Alcance", resultado.fueraAlcance, y);
-    y = addSection("5. Entregables del Proyecto", resultado.entregables, y);
-    y = addSection("6. Método de Implementación", resultado.metodo, y);
-    y = addSection("7. Condiciones Comerciales", resultado.condiciones, y);
+    y = addSection(
+      "1. Procesos Actuales Identificados",
+      resultado.procesos || "No especificado",
+      y
+    );
+    y = addSection(
+      "2. Objetivos del Proyecto",
+      resultado.objetivos || "No especificado",
+      y
+    );
+    y = addSection(
+      "3. Alcance del Proyecto",
+      resultado.alcance || "No especificado",
+      y
+    );
+    y = addSection(
+      "4. Fuera del Alcance",
+      resultado.fueraAlcance || "No especificado",
+      y
+    );
+    y = addSection(
+      "5. Entregables del Proyecto",
+      resultado.entregables || "No especificado",
+      y
+    );
+    y = addSection(
+      "6. Método de Implementación",
+      resultado.metodo || "No especificado",
+      y
+    );
+    y = addSection(
+      "7. Condiciones Comerciales",
+      resultado.condiciones || "No especificado",
+      y
+    );
 
+    doc.setFontSize(10);
+    const footerText =
+      "Esta propuesta es un borrador preliminar. Para una definición precisa, agende una reunión en: https://calendly.com/tersoft/primera-sesion-para-conocer-necesidades-de-su-empresa";
+    const footerLines = doc.splitTextToSize(footerText, 170);
+    doc.text(footerLines, 20, y + 10);
     doc.save("propuesta_odoo.pdf");
   };
 
@@ -125,13 +160,27 @@ export default function DiagnosticoInteligentePage() {
             >
               Diagnóstico inteligente para tu empresa
             </Typography>
-            <Typography variant="body1" color="text.primary" sx={{ mb: 3 }}>
+            <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
               Responde algunas preguntas sobre tu negocio. Usaremos esta
               información para definir el alcance ideal de tu implementación
               Odoo.
             </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <strong>Nota:</strong> Este diagnóstico genera un{" "}
+              <strong>borrador automático</strong>. Para definir el alcance de
+              forma precisa, te recomendamos agendar una reunión en nuestro{" "}
+              <Link
+                href="https://calendly.com/tersoft/primera-sesion-para-conocer-necesidades-de-su-empresa"
+                target="_blank"
+                rel="noopener"
+              >
+                Calendly
+              </Link>
+              .
+            </Typography>
             <Divider sx={{ mb: 3 }} />
 
+            {/* Campos del formulario */}
             <TextField
               label="Nombre de la empresa"
               fullWidth
