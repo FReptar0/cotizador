@@ -130,7 +130,7 @@ export default function CotizadorPage() {
   const [fechaInicio, setFechaInicio] = useState("Aún no tengo claro");
 
   // Número de usuarios (licencias)
-  const [numUsuarios, setNumUsuarios] = useState(1);
+  const [numUsuarios, setNumUsuarios] = useState(0);
 
   // Archivo de transcripción
   const [transcriptionFile, setTranscriptionFile] = useState(null);
@@ -278,7 +278,6 @@ export default function CotizadorPage() {
                   width: "100%",
                   maxWidth: "800px", // ancho fijo para el formulario
                   margin: "0 auto",
-                  mt: "70px",
                 }}
               >
                 <Typography
