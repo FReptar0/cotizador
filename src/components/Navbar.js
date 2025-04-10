@@ -45,6 +45,24 @@ const Navbar = ({ onLogout }) => {
           Cotizador para proyectos Odoo | Tersoft
         </Typography>
 
+        {/* Botón para cotizador tradicional */}
+        <Button
+          variant="text"
+          sx={{ color: "#ffffff", mr: 2 }}
+          href="/cotizador"
+        >
+          Cotizador
+        </Button>
+
+        {/* Botón para diagnóstico inteligente */}
+        <Button
+          variant="text"
+          sx={{ color: "#ffffff", mr: 2 }}
+          href="/diagnostico-inteligente"
+        >
+          Diagnóstico inteligente
+        </Button>
+
         {/* Botón para agendar una cita */}
         <Button
           variant="text"
@@ -54,6 +72,7 @@ const Navbar = ({ onLogout }) => {
           Agende una cita
         </Button>
 
+        {/* Menú de usuario */}
         <IconButton color="inherit" onClick={handleMenuOpen}>
           <AccountCircleIcon />
         </IconButton>
