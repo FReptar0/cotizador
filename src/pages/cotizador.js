@@ -54,7 +54,7 @@ const orderRanges = [
   { label: "Más de 500", value: 600 },
 ];
 
-// Lista de módulos
+// Lista de módulos (si deseas mantenerla; no influye en la lógica de licencias)
 const odooModules = [
   { name: "Calidad" },
   { name: "Contabilidad" },
@@ -84,21 +84,17 @@ const odooModules = [
   { name: "Ventas" },
 ];
 
-// Precios por usuario según el tipo de hosteo
-const hostingUserCosts = {
-  "Odoo Online": { current: 180, old: 285 },
-  "Odoo.sh": { current: 274, old: 425 },
-  "On-Premise": { current: 0, old: 0 },
-};
-
+// Valida correo
 function validateEmail(email) {
-  const regex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  // Ajustado el guion para evitar problemas de rangos
+  const regex = /^[\\w.\\-]+@([\\w\\-]+\\.)+[\\w\\-]{2,4}$/;
   if (!regex.test(email)) {
     return "Por favor ingresa un correo válido";
   }
   return "";
 }
 
+// Valida teléfono (solo dígitos)
 function validatePhone(phone) {
   const regex = /^[0-9]+$/; // Solo dígitos
   if (!regex.test(phone)) {
@@ -150,7 +146,10 @@ export default function CotizadorPage() {
   // Resultados
   const [quote, setQuote] = useState(0);
   const [estimatedHours, setEstimatedHours] = useState(0);
+
+  // Costos de licencias
   const [licenseQuote, setLicenseQuote] = useState(0);
+  const [licenseQuoteNoDisc, setLicenseQuoteNoDisc] = useState(0);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -170,10 +169,11 @@ export default function CotizadorPage() {
     }
   };
 
-  // Lógica de cálculo
+  // Lógica de cálculo principal
   useEffect(() => {
     if (!authChecked) return;
 
+    // Manejo seguro de NaN
     const safeNumUsuarios = isNaN(parseInt(numUsuarios))
       ? 0
       : parseInt(numUsuarios);
@@ -181,8 +181,11 @@ export default function CotizadorPage() {
       ? 0
       : parseInt(urgenciaDias);
 
+    // Horas estimadas
     const n_modulos = selectedModules.length;
     let horasBase = 0;
+
+    // Multiplicadores según tipo de implementación
     if (implementationType === "cliente") {
       horasBase = n_modulos * 2;
     } else if (implementationType === "mixta") {
@@ -191,6 +194,7 @@ export default function CotizadorPage() {
       horasBase = n_modulos * 12;
     }
 
+    // Horas extra
     let horasExtra = 0;
     if (nEmpresas > 1) {
       horasExtra += (nEmpresas - 1) * 8;
@@ -208,16 +212,30 @@ export default function CotizadorPage() {
       horasExtra += 8;
     }
 
+    // Factor de urgencia
     const urgenciaFactor = safeUrgencia > 0 && safeUrgencia <= 30 ? 1.2 : 1.0;
+
+    // Cálculo total de horas y costo de implementación
     const horasTotales = Math.ceil((horasBase + horasExtra) * urgenciaFactor);
     const costoTotal = horasTotales * 500;
     setEstimatedHours(horasTotales);
     setQuote(costoTotal.toFixed(2));
 
+    // ------------------------------------------------
     // Costo anual de licencias
-    const hostingCost = hostingUserCosts[hosteo]?.current || 0;
-    const costoLicencias = safeNumUsuarios * hostingCost * 12;
-    setLicenseQuote(costoLicencias.toFixed(2));
+    //   - Precio fijo: 4080 MXN por usuario/año
+    //   - Descuento 10% el primer año
+    // ------------------------------------------------
+    const costPerUserYear = 4080;
+    const firstYearDiscount = 0.1; // 10%
+
+    const costoLicenciasSinDesc = safeNumUsuarios * costPerUserYear;
+    const costoLicenciasPrimerAnio =
+      costoLicenciasSinDesc * (1 - firstYearDiscount);
+
+    // Guardamos ambos para mostrarlos
+    setLicenseQuoteNoDisc(costoLicenciasSinDesc.toFixed(2));
+    setLicenseQuote(costoLicenciasPrimerAnio.toFixed(2));
   }, [
     authChecked,
     selectedModules,
@@ -243,7 +261,7 @@ export default function CotizadorPage() {
     );
   };
 
-  // Lógica del menú de usuario (si se usa en esta página)
+  // Lógica del menú de usuario (si se usa)
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -494,76 +512,148 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
-                {/* Sección de módulos */}
+                {/* Sección de módulos con diseño separado por grupos */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
-                    variant="subtitle1"
+                    variant="h6"
                     fontWeight="bold"
                     color="text.primary"
-                    sx={{ mb: 1 }}
+                    sx={{ mb: 2 }}
                   >
                     Selecciona los módulos necesarios
                   </Typography>
-                  <Box
-                    component="table"
-                    sx={{
-                      width: "100%",
-                      borderCollapse: "separate",
-                      borderSpacing: "16px 8px",
-                    }}
-                  >
-                    <tbody>
-                      {chunkArray(
-                        [...odooModules].sort((a, b) =>
-                          a.name.localeCompare(b.name)
-                        ),
-                        3
-                      ).map((row, rowIndex) => (
-                        <Box component="tr" key={rowIndex}>
-                          {row.map((module) => (
-                            <Box
-                              component="td"
-                              key={module.name}
-                              sx={{
-                                width: { xs: "100%", md: "33%" },
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              <FormControlLabel
-                                control={
-                                  <Checkbox
-                                    onChange={() =>
-                                      handleModuleChange(module.name)
-                                    }
-                                    checked={selectedModules.includes(
-                                      module.name
-                                    )}
-                                    color="primary"
-                                  />
-                                }
-                                label={module.name}
+
+                  <Grid container spacing={4}>
+                    {[
+                      {
+                        title: "FINANZAS",
+                        color: "#008080",
+                        items: [
+                          "Contabilidad",
+                          "Facturación",
+                          "Gastos",
+                          "Hoja de cálculo (BI)",
+                          "Documentos",
+                          "Firma electrónica",
+                        ],
+                      },
+                      {
+                        title: "VENTAS",
+                        color: "#FF6B6B",
+                        items: [
+                          "CRM",
+                          "Ventas",
+                          "PdV para tiendas",
+                          "PdV para restaurantes",
+                          "Suscripciones",
+                          "Alquiler",
+                        ],
+                      },
+                      {
+                        title: "SITIOS WEB",
+                        color: "#4A90E2",
+                        items: [
+                          "Creador de sitios web",
+                          "Comercio electrónico",
+                          "Blog",
+                          "Foro",
+                          "Chat en vivo",
+                          "eLearning",
+                        ],
+                      },
+                      {
+                        title: "CADENA DE SUMINISTRO",
+                        color: "#7B61FF",
+                        items: [
+                          "Inventario",
+                          "Manufactura",
+                          "PLM",
+                          "Compras",
+                          "Mantenimiento",
+                          "Calidad",
+                        ],
+                      },
+                      {
+                        title: "RECURSOS HUMANOS",
+                        color: "#8E7CC3",
+                        items: [
+                          "Empleados",
+                          "Reclutamiento",
+                          "Tiempo personal",
+                          "Evaluación",
+                          "Referencias",
+                          "Flota",
+                        ],
+                      },
+                      {
+                        title: "MARKETING",
+                        color: "#F2994A",
+                        items: [
+                          "Marketing social",
+                          "Email Marketing",
+                          "Marketing por SMS",
+                          "Eventos",
+                          "Automatización de marketing",
+                          "Encuestas",
+                        ],
+                      },
+                      {
+                        title: "SERVICIOS",
+                        color: "#E67E22",
+                        items: [
+                          "Proyectos",
+                          "Hojas de horas",
+                          "Servicio externo",
+                          "Soporte al cliente",
+                          "Planeación",
+                          "Citas",
+                        ],
+                      },
+                      {
+                        title: "PRODUCTIVIDAD",
+                        color: "#9B59B6",
+                        items: [
+                          "Conversaciones",
+                          "Aprobaciones",
+                          "IoT",
+                          "VoIP",
+                          "Información",
+                          "WhatsApp",
+                        ],
+                      },
+                    ].map((group) => (
+                      <Grid item xs={12} sm={6} md={4} key={group.title}>
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight="bold"
+                          sx={{
+                            color: group.color,
+                            borderBottom: `2px solid ${group.color}`,
+                            mb: 1,
+                            pb: 0.5,
+                          }}
+                        >
+                          {group.title}
+                        </Typography>
+                        {group.items.map((moduleName) => (
+                          <FormControlLabel
+                            key={moduleName}
+                            control={
+                              <Checkbox
+                                onChange={() => handleModuleChange(moduleName)}
+                                checked={selectedModules.includes(moduleName)}
                                 sx={{
-                                  "& .MuiFormControlLabel-label": {
-                                    whiteSpace: "nowrap",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                  },
+                                  color: group.color,
+                                  "&.Mui-checked": { color: group.color },
                                 }}
                               />
-                            </Box>
-                          ))}
-                          {row.length < 3 &&
-                            [...Array(3 - row.length)].map((_, i) => (
-                              <Box
-                                component="td"
-                                key={`empty-${i}`}
-                                sx={{ width: { xs: "100%", md: "33%" } }}
-                              />
-                            ))}
-                        </Box>
-                      ))}
-                    </tbody>
-                  </Box>
+                            }
+                            label={moduleName}
+                          />
+                        ))}
+                      </Grid>
+                    ))}
+                  </Grid>
                 </Box>
 
                 {/* Parámetros del proyecto */}
@@ -866,6 +956,7 @@ export default function CotizadorPage() {
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
+            {/* Costo de implementación */}
             <Box sx={{ mb: 2 }}>
               <Typography
                 variant="body2"
@@ -888,6 +979,7 @@ export default function CotizadorPage() {
 
             <Divider sx={{ my: 2 }} />
 
+            {/* Costo anual de licencias */}
             <Box sx={{ mb: 2 }}>
               <Typography
                 variant="body2"
@@ -895,14 +987,29 @@ export default function CotizadorPage() {
               >
                 Costo anual de licencias:
               </Typography>
+
               <Typography
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
                 MX$ {licenseQuote}
               </Typography>
+
+              {/* Precio SIN Descuento */}
+              <Typography variant="body2" color="text.primary">
+                <strong>Precio regular (sin descuento):</strong> MX${" "}
+                {licenseQuoteNoDisc}
+              </Typography>
+
+              {/* Precio con Descuento */}
+              {/* <Typography variant="body2" color="text.primary">
+                <strong>Con 10% de descuento (1er año):</strong> MX${" "}
+                {licenseQuote}
+              </Typography> */}
+
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                *Este costo se paga directamente con Odoo.
+                El costo sin descuento es de 4080 MXN por usuario/año, pero para
+                el primer año se aplica un 10% de descuento.
               </Typography>
             </Box>
 
@@ -940,6 +1047,7 @@ export default function CotizadorPage() {
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
+            {/* Costo de implementación en móvil */}
             <Box sx={{ mb: 2 }}>
               <Typography
                 variant="body2"
@@ -957,6 +1065,7 @@ export default function CotizadorPage() {
 
             <Divider sx={{ my: 2 }} />
 
+            {/* Costo anual de licencias en móvil */}
             <Box sx={{ mb: 2 }}>
               <Typography
                 variant="body2"
@@ -964,14 +1073,20 @@ export default function CotizadorPage() {
               >
                 Costo anual de licencias:
               </Typography>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
-              >
-                MX$ {licenseQuote}
+
+              {/* SIN DESCUENTO */}
+              <Typography variant="body2" color="text.primary">
+                <strong>Precio regular:</strong> MX$ {licenseQuoteNoDisc}
               </Typography>
+
+              {/* CON DESCUENTO */}
+              <Typography variant="body2" color="text.primary">
+                <strong>10% desc. 1er año:</strong> MX$ {licenseQuote}
+              </Typography>
+
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                *Este costo se paga directamente con Odoo.
+                El costo sin descuento es de 4080 MXN por usuario/año, pero para
+                el primer año se aplica un 10% de descuento.
               </Typography>
             </Box>
 
@@ -989,13 +1104,4 @@ export default function CotizadorPage() {
       </Box>
     </ThemeProvider>
   );
-}
-
-/** Helpers */
-function chunkArray(array, size) {
-  const chunked = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunked.push(array.slice(i, i + size));
-  }
-  return chunked;
 }
