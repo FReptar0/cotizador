@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import {
   Container,
@@ -22,6 +22,10 @@ import {
   Radio,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Chip from "@mui/material/Chip";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 // Configuración del tema con la nueva paleta
@@ -105,6 +109,27 @@ function validatePhone(phone) {
 
 export default function CotizadorPage() {
   const router = useRouter();
+  const inputRef = useRef(null);
+
+  // Drag & Drop handlers
+  const handleDragOver = (e) => e.preventDefault();
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.name.toLowerCase().endsWith(".txt")) {
+      setTranscriptionFile(file);
+      setFileName(file.name);
+    }
+  };
+
+  // Manejador selección archivo por clic
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.name.toLowerCase().endsWith(".txt")) {
+      setTranscriptionFile(file);
+      setFileName(file.name);
+    }
+  };
 
   // Verificar login
   const [authChecked, setAuthChecked] = useState(false);
@@ -159,15 +184,6 @@ export default function CotizadorPage() {
       setAuthChecked(true);
     }
   }, [router]);
-
-  // Manejo del archivo de transcripción
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setTranscriptionFile(file);
-      setFileName(file.name);
-    }
-  };
 
   // Lógica de cálculo principal
   useEffect(() => {
@@ -399,23 +415,76 @@ export default function CotizadorPage() {
                   >
                     Subir transcripción (archivo TXT)
                   </Typography>
-                  <Button variant="outlined" component="label">
-                    Seleccionar archivo
-                    <input
-                      type="file"
-                      accept=".txt"
-                      hidden
-                      onChange={handleFileChange}
+
+                  <Box
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onClick={() => inputRef.current && inputRef.current.click()}
+                    sx={{
+                      border: "2px dashed #ccc",
+                      borderRadius: 1,
+                      p: 3,
+                      textAlign: "center",
+                      cursor: "pointer",
+                      "&:hover": { borderColor: "#337ab7" },
+                    }}
+                  >
+                    <CloudUploadIcon
+                      sx={{ fontSize: 40, color: "#555", mb: 1 }}
                     />
-                  </Button>
-                  {fileName && (
-                    <Typography
-                      variant="body2"
-                      color="text.primary"
-                      sx={{ mt: 1 }}
-                    >
-                      Archivo seleccionado: {fileName}
+                    <Typography variant="body2" color="text.primary">
+                      Arrastra y suelta tu archivo aquí
+                      <br />o haz clic para seleccionar (.txt)
                     </Typography>
+                  </Box>
+
+                  <input
+                    type="file"
+                    accept=".txt"
+                    hidden
+                    ref={inputRef}
+                    onChange={handleFileChange}
+                  />
+
+                  {fileName && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        border: "1px solid #ccc",
+                        borderRadius: 1,
+                        p: 1,
+                        mt: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <InsertDriveFileIcon sx={{ color: "#555" }} />
+                        <Typography variant="body1" color="text.primary">
+                          {fileName}
+                        </Typography>
+                        <Chip
+                          label=".txt"
+                          size="small"
+                          sx={{
+                            fontWeight: "bold",
+                            backgroundColor: "#f0f0f0",
+                          }}
+                        />
+                      </Box>
+                      <IconButton
+                        aria-label="Eliminar archivo"
+                        onClick={() => {
+                          setTranscriptionFile(null);
+                          setFileName("");
+                        }}
+                        sx={{ color: "#555" }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
                   )}
                 </Box>
 
