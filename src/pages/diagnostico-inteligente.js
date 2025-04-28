@@ -16,19 +16,10 @@ import jsPDF from "jspdf";
 
 const theme = createTheme({
   palette: {
-    primary: {
-      main: "#337ab7",
-      contrastText: "#ffffff",
-    },
-    secondary: {
-      main: "#343b40",
-    },
-    background: {
-      default: "#ffffff",
-    },
-    text: {
-      primary: "#212528",
-    },
+    primary: { main: "#337ab7", contrastText: "#ffffff" },
+    secondary: { main: "#343b40" },
+    background: { default: "#ffffff" },
+    text: { primary: "#212528" },
   },
 });
 
@@ -180,112 +171,157 @@ export default function DiagnosticoInteligentePage() {
             </Typography>
             <Divider sx={{ mb: 3 }} />
 
-            {/* Campos del formulario */}
-            <TextField
-              label="Nombre de la empresa"
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={empresa}
-              onChange={(e) => setEmpresa(e.target.value)}
-            />
-            <TextField
-              label="¿A qué se dedica tu empresa? (Giro del negocio)"
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={giro}
-              onChange={(e) => setGiro(e.target.value)}
-            />
-            <TextField
-              label="¿Cuántas personas trabajan en tu empresa?"
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 2 }}
-              type="number"
-              value={empleados}
-              onChange={(e) => setEmpleados(e.target.value)}
-            />
-            <TextField
-              label="¿Cómo gestionan actualmente sus procesos administrativos o financieros?"
-              fullWidth
-              multiline
-              minRows={3}
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={procesos}
-              onChange={(e) => setProcesos(e.target.value)}
-            />
-            <TextField
-              label="¿Qué problemas o limitaciones enfrentan hoy en día?"
-              fullWidth
-              multiline
-              minRows={3}
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={problemas}
-              onChange={(e) => setProblemas(e.target.value)}
-            />
-            <TextField
-              label="¿Qué te gustaría lograr al implementar un sistema como Odoo?"
-              fullWidth
-              multiline
-              minRows={3}
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={objetivos}
-              onChange={(e) => setObjetivos(e.target.value)}
-            />
-            <TextField
-              label="¿Cómo captan y atienden a sus clientes?"
-              fullWidth
-              multiline
-              minRows={2}
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={clientes}
-              onChange={(e) => setClientes(e.target.value)}
-            />
-            <TextField
-              label="¿Qué productos o servicios ofrecen y cómo los venden?"
-              fullWidth
-              multiline
-              minRows={2}
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={productos}
-              onChange={(e) => setProductos(e.target.value)}
-            />
-            <TextField
-              label="¿Cómo llevan el control de sus ventas y facturación?"
-              fullWidth
-              multiline
-              minRows={2}
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={ventas}
-              onChange={(e) => setVentas(e.target.value)}
-            />
-            <TextField
-              label="¿Cómo gestionan la entrega de productos o servicios (logística)?"
-              fullWidth
-              multiline
-              minRows={2}
-              variant="outlined"
-              sx={{ mb: 2 }}
-              value={logistica}
-              onChange={(e) => setLogistica(e.target.value)}
-            />
-            <TextField
-              label="¿Cuentan con personal de tecnología o alguien que administre sistemas actualmente?"
-              fullWidth
-              multiline
-              minRows={2}
-              variant="outlined"
-              sx={{ mb: 3 }}
-              value={equipoTI}
-              onChange={(e) => setEquipoTI(e.target.value)}
-            />
+            {/* Formulario con preguntas en negrita */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                Nombre de la empresa
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                value={empresa}
+                onChange={(e) => setEmpresa(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿A qué se dedica tu empresa? (Giro del negocio)
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                value={giro}
+                onChange={(e) => setGiro(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Cuántas personas trabajan en tu empresa?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                type="number"
+                value={empleados}
+                onChange={(e) => setEmpleados(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Cómo gestionan actualmente sus procesos administrativos o
+                financieros?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                minRows={3}
+                value={procesos}
+                onChange={(e) => setProcesos(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Qué problemas o limitaciones enfrentan hoy en día?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                minRows={3}
+                value={problemas}
+                onChange={(e) => setProblemas(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Qué te gustaría lograr al implementar un sistema como Odoo?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                minRows={3}
+                value={objetivos}
+                onChange={(e) => setObjetivos(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Cómo captan y atienden a sus clientes?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                minRows={2}
+                value={clientes}
+                onChange={(e) => setClientes(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Qué productos o servicios ofrecen y cómo los venden?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                minRows={2}
+                value={productos}
+                onChange={(e) => setProductos(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Cómo llevan el control de sus ventas y facturación?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                minRows={2}
+                value={ventas}
+                onChange={(e) => setVentas(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Cómo gestionan la entrega de productos o servicios (logística)?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                minRows={2}
+                value={logistica}
+                onChange={(e) => setLogistica(e.target.value)}
+              />
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Cuentan con personal de tecnología o alguien que administre
+                sistemas actualmente?
+              </Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                multiline
+                minRows={2}
+                value={equipoTI}
+                onChange={(e) => setEquipoTI(e.target.value)}
+              />
+            </Box>
 
             <Button
               variant="contained"
@@ -316,7 +352,7 @@ export default function DiagnosticoInteligentePage() {
                   color="text.primary"
                 >
                   {Object.entries(resultado).map(
-                    ([key, val]) => `${key.toUpperCase()}\n${val}\n\n`
+                    ([key, val]) => `**${key.toUpperCase()}**\n${val}\n\n`
                   )}
                 </Typography>
                 <Button variant="outlined" onClick={generarPDF}>

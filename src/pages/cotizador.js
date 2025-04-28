@@ -289,6 +289,67 @@ export default function CotizadorPage() {
     router.push("/login");
   };
 
+  //enviar datos a gemini
+  const handleEnviar = async () => {
+    try {
+      // 1) Empaqueta todos los valores del formulario en un objeto
+      const payload = {
+        customerName,
+        customerCompany,
+        selectedModules,
+        implementationType,
+        nEmpresas,
+        urgenciaDias,
+        importacionDatos,
+        integraciones,
+        personalizaciones,
+        reportes,
+        orderRange,
+        multimoneda,
+        hosteo,
+        fechaInicio,
+        numUsuarios,
+        licenseQuote,
+        quote,
+        estimatedHours,
+      };
+
+      // 2) Llama a tu API de Gemini
+      const res = await fetch("/api/gemini", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // 3) Verifica que la respuesta sea correcta
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: No se pudo generar la propuesta`);
+      }
+
+      // 4) Convierte la respuesta en un Blob (PDF)
+      const blob = await res.blob();
+
+      // 5) Crea una URL temporal para descargar
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Propuesta.pdf"; // nombre del archivo
+      document.body.appendChild(a);
+      a.click();
+
+      // 6) Limpia
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("handleEnviar:", error);
+      alert(
+        "¡Ups! Hubo un problema generando la propuesta. Por favor, inténtalo de nuevo."
+      );
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Head>
@@ -1087,7 +1148,12 @@ export default function CotizadorPage() {
             <Box
               sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}
             >
-              <Button variant="contained" color="primary" fullWidth>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={handleEnviar}
+              >
                 ENVIAR COTIZACIÓN
               </Button>
             </Box>
