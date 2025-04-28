@@ -1,6 +1,8 @@
 // archivo: pages/api/gemini.js
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+// Cambio: utilizamos fetch en Node.js para cargar imágenes desde /public
+// (en Next.js 13+ fetch es global; si usas versión anterior, instala node-fetch)
 
 //
 // Función auxiliar: dibuja cada línea detectando **texto** y poniéndolo en negrita
@@ -54,7 +56,6 @@ export default async function handler(req, res) {
 
     // 5) Construimos el prompt que enviamos a Gemini
     const plantilla = `PROPUESTA DE IMPLEMENTACIÓN DE ODOO PARA ${customerCompany}`;
-
     const prompt = `${plantilla}
 
 
@@ -137,6 +138,10 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
     const result = await model.generateContent(prompt);
     const text = (await result.response).text();
 
+    // quitar dobles asteriscos y poner asteriscos simples
+    let processedText = text.replace(/\*\*/g, "");
+    processedText = processedText.replace(/\*/g, "•");
+
     // 7) Creamos el PDF con jsPDF
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "pt", format: "letter" });
@@ -152,7 +157,27 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
     const lineHeight = 18;
     let y = marginY;
 
-    // 8) Escribimos cada línea, aplicando negritas donde toca
+    // Cambio: insertar imagen (logo) al inicio
+    // Asegúrate de tener tu logo en /public/logo.png
+    try {
+      const logoUrl = `/logo-tersoft.png`;
+      const logoRes = await fetch(logoUrl);
+      const logoArray = new Uint8Array(await logoRes.arrayBuffer());
+      const logoBase64 = Buffer.from(logoArray).toString("base64");
+      doc.addImage(
+        `data:image/png;base64,${logoBase64}`,
+        "PNG",
+        marginX,
+        y,
+        100, // ancho del logo
+        30 // alto del logo
+      );
+      y += 40; // dejar espacio tras la imagen
+    } catch (e) {
+      console.warn("No se pudo cargar el logo:", e);
+    }
+
+    // 8) Escribimos cada línea, aplicando negritas en títulos y justificando texto
     const lines = text.split("\n");
     for (const rawLine of lines) {
       const line = rawLine.trim();
@@ -168,7 +193,23 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
           doc.addPage();
           y = marginY;
         }
-        renderLineWithBold(doc, chunk, marginX, y);
+
+        if (/^\d+\.\s/.test(chunk)) {
+          // Cambio: títulos en negrita
+          doc.setFont("helvetica", "bold");
+          doc.text(chunk, marginX, y, {
+            maxWidth: usableWidth,
+            align: "left",
+          });
+        } else {
+          // Cambio: texto justificado
+          doc.setFont("helvetica", "normal");
+          doc.text(chunk, marginX, y, {
+            maxWidth: usableWidth,
+            align: "justify",
+          });
+        }
+
         y += lineHeight;
       }
     }

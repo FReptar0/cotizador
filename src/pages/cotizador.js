@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
+import Swal from "sweetalert2";
 import {
   Container,
   Box,
@@ -90,8 +91,8 @@ const odooModules = [
 
 // Valida correo
 function validateEmail(email) {
-  // Ajustado el guion para evitar problemas de rangos
-  const regex = /^[\\w.\\-]+@([\\w\\-]+\\.)+[\\w\\-]{2,4}$/;
+  // Un regex sencillo y efectivo:
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!regex.test(email)) {
     return "Por favor ingresa un correo válido";
   }
@@ -133,6 +134,9 @@ export default function CotizadorPage() {
 
   // Verificar login
   const [authChecked, setAuthChecked] = useState(false);
+
+  //verificar si se esta descargando
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Estados del cotizador
   const [selectedModules, setSelectedModules] = useState([]);
@@ -290,9 +294,45 @@ export default function CotizadorPage() {
   };
 
   //enviar datos a gemini
+  // Enviar datos a Gemini con validaciones SweetAlert2
   const handleEnviar = async () => {
+    // Validar datos del cliente
+    if (
+      !customerName.trim() ||
+      !customerCompany.trim() ||
+      !customerEmail.trim() ||
+      !customerPhone.trim()
+    ) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Faltan datos del cliente",
+        text: "Por favor completa todos los datos del cliente antes de continuar.",
+      });
+      return;
+    }
+    // Validar módulos seleccionados
+    if (selectedModules.length === 0) {
+      await Swal.fire({
+        icon: "warning",
+        title: "No has seleccionado módulos",
+        text: "Debes seleccionar al menos un módulo para generar la cotización.",
+      });
+      return;
+    }
+    // Validar licencias
+    const safeNumUsuarios = isNaN(parseInt(numUsuarios))
+      ? 0
+      : parseInt(numUsuarios);
+    if (safeNumUsuarios < 1) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Licencias insuficientes",
+        text: "Debes especificar al menos una licencia para continuar.",
+      });
+      return;
+    }
+
     try {
-      // 1) Empaqueta todos los valores del formulario en un objeto
       const payload = {
         customerName,
         customerCompany,
@@ -314,39 +354,35 @@ export default function CotizadorPage() {
         estimatedHours,
       };
 
-      // 2) Llama a tu API de Gemini
+      setIsDownloading(true);
       const res = await fetch("/api/gemini", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      // 3) Verifica que la respuesta sea correcta
       if (!res.ok) {
         throw new Error(`Error ${res.status}: No se pudo generar la propuesta`);
       }
 
-      // 4) Convierte la respuesta en un Blob (PDF)
       const blob = await res.blob();
-
-      // 5) Crea una URL temporal para descargar
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "Propuesta.pdf"; // nombre del archivo
+      a.download = "Propuesta.pdf";
       document.body.appendChild(a);
       a.click();
-
-      // 6) Limpia
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("handleEnviar:", error);
-      alert(
-        "¡Ups! Hubo un problema generando la propuesta. Por favor, inténtalo de nuevo."
-      );
+      await Swal.fire({
+        icon: "error",
+        title: "Error al generar la propuesta",
+        text: "¡Ups! Hubo un problema generando la propuesta. Por favor, inténtalo de nuevo.",
+      });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -1153,6 +1189,7 @@ export default function CotizadorPage() {
                 color="primary"
                 fullWidth
                 onClick={handleEnviar}
+                disabled={isDownloading}
               >
                 ENVIAR COTIZACIÓN
               </Button>
