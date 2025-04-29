@@ -77,10 +77,12 @@ Fecha: ${today}
     - Describir los objetivos específicos que se buscan alcanzar con la implementación de Odoo.
     - Escribir "Los objetivos del proyecto son: (como ejemplo toma, centraliar la informacione n una sola plataforma ...,"
 4. Alcance del Proyecto
-    - escribir "El alcance del proyecto inclutye los siguiente smdoulos de odoo:"
-    - Listar los módulos de Odoo que se implementarán ${selectedModules} y su funcionalidad especificamente para esa empresa.
+    - escribir "El alcance del proyecto inclutye los siguientes modulos de odoo:"
+    - Listar los módulos de Odoo que se implementarán ${selectedModules} siempre describir su funcionalidad especificamente para esa empresa.
+    - Escribir "El alcance del proyecto incluye la implementación de los siguientes módulos de Odoo:
+    
 5. Fuera del Alcance
-    - Escribir "Escribir algunos modulos que no se implementarán en esta fase del proyecto, como por ejemplo: CRM, Marketing, etc."
+    - Escribir "Escribir algunos modulos que no se implementarán en esta fase del proyecto, como por ejemplo: CRM, Marketing, etc. (segun sea el caso)"
 6. Entregables del Proyecto
     - Escribir Los entregables incluirán: 
     Documentación de requisitos con detalles de configuración y personalización.
@@ -119,7 +121,7 @@ Fecha: ${today}
     - Escribir "Los costos del proyecto son los siguientes:
     - Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
     - Implementación: MX$ ${quote} + IVA (con terosft)
-    - Días de entrega aproximados: ${deliveryDays} días
+    - Días de entrega aproximados: ${deliveryDays} días (una vez que se firme el contrato)
     - Condiciones de pago: 50% al inicio del proyecto y 50% al finalizar la implementación.
 9. Conclusión
    -  escribir "La implementacion de odoo proporcionara a ${customerCompany} una plataforma integrada y eficiente para gestionar sus operaciones. Con la implementación de Odoo, ${customerCompany} podrá optimizar sus procesos, mejorar la colaboración entre departamentos y tomar decisiones informadas basadas en datos en tiempo real. Estamos comprometidos a brindar un servicio de alta calidad y a garantizar el éxito de esta implementación."
