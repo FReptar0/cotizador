@@ -1,5 +1,6 @@
 // archivo: pages/api/gemini.js
-
+import fs from "fs";
+import path from "path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 // Cambio: utilizamos fetch en Node.js para cargar imágenes desde /public
 // (en Next.js 13+ fetch es global; si usas versión anterior, instala node-fetch)
@@ -85,13 +86,13 @@ Fecha: ${today}
     - Escribir "Escribir algunos modulos que no se implementarán en esta fase del proyecto, como por ejemplo: CRM, Marketing, etc. (segun sea el caso)"
 6. Entregables del Proyecto
     - Escribir Los entregables incluirán: 
-    Documentación de requisitos con detalles de configuración y personalización.
-    Configuración de módulos según necesidades específicas.
-    Personalización avanzada en ${hosteo}
-    Manuales de usuario para facilitar la adopción del sistema.
-    Capacitaciones a los usuarios clave .
-    Reportes y dashboards personalizados segun se requieran.
-    Soporte post-implementación durante la fase inicia
+    • Documentación de requisitos con detalles de configuración y personalización.
+    • Configuración de módulos según necesidades específicas.
+    • Personalización avanzada en ${hosteo}
+    • Manuales de usuario para facilitar la adopción del sistema.
+    • Capacitaciones a los usuarios clave.
+    • Reportes y dashboards personalizados segun se requieran.
+    • Soporte post-implementación durante la fase inicia
 7. Método de Implementación
    - Escribir "Fases del Proyecto:
     1. Análisis de Requisitos
@@ -120,7 +121,7 @@ Fecha: ${today}
 
     - Escribir "Los costos del proyecto son los siguientes:
     - Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
-    - Implementación: MX$ ${quote} + IVA (con terosft)
+    - Implementación: MX$ ${quote} + IVA (con tersoft)
     - Días de entrega aproximados: ${deliveryDays} días (una vez que se firme el contrato)
     - Condiciones de pago: 50% al inicio del proyecto y 50% al finalizar la implementación.
 9. Conclusión
@@ -129,10 +130,11 @@ Fecha: ${today}
 
 Datos para la sección 8:
 - Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
-- Implementación: MX$ ${quote} + IVA (con terosft)
+- Implementación: MX$ ${quote} + IVA (con tersoft)
 - Días de entrega aproximados: ${deliveryDays} días
 
-Genera el contenido en español, siguiendo exactamente esas nueve secciones y nada más.`;
+Genera el contenido en español, siguiendo exactamente esas nueve secciones y nada más.
+`;
 
     // 6) Inicializamos Gemini y pedimos la generación
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -150,68 +152,70 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
 
-    // Márgenes y posición inicial
+    // Márgenes y configuración base
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const marginX = 60; // margen izquierdo y derecho
     const marginY = 60; // margen superior y fondo
     const usableWidth = pageWidth - marginX * 2;
     const lineHeight = 18;
-    let y = marginY;
+    let y;
 
-    // Cambio: insertar imagen (logo) al inicio
-    // Asegúrate de tener tu logo en /public/logo.png
+    // 7b) Insertar encabezado a 100% de ancho, sin márgenes superiores
     try {
-      const logoUrl = `/logo-tersoft.png`;
-      const logoRes = await fetch(logoUrl);
-      const logoArray = new Uint8Array(await logoRes.arrayBuffer());
-      const logoBase64 = Buffer.from(logoArray).toString("base64");
-      doc.addImage(
-        `data:image/png;base64,${logoBase64}`,
-        "PNG",
-        marginX,
-        y,
-        100, // ancho del logo
-        30 // alto del logo
+      // ruta absoluta a tu carpeta public
+      const headerPath = path.join(
+        process.cwd(),
+        "public",
+        "encabezado-Odoo.jpg"
       );
-      y += 40; // dejar espacio tras la imagen
-    } catch (e) {
-      console.warn("No se pudo cargar el logo:", e);
+      const headerBuffer = fs.readFileSync(headerPath);
+      const headerBase64 = headerBuffer.toString("base64");
+      // calcula altura manteniendo proporción (opcional)
+      const imgProps = doc.getImageProperties(
+        `data:image/jpeg;base64,${headerBase64}`
+      );
+      const headerHeight = (imgProps.height * pageWidth) / imgProps.width;
+      doc.addImage(
+        `data:image/jpeg;base64,${headerBase64}`,
+        "JPEG",
+        0,
+        0,
+        pageWidth,
+        headerHeight
+      );
+      // desplazamos Y tras el encabezado
+      y = headerHeight + marginY;
+    } catch (err) {
+      console.error("Error cargando encabezado desde disco:", err);
+      y = marginY;
     }
 
     // 8) Escribimos cada línea, aplicando negritas en títulos y justificando texto
-    const lines = text.split("\n");
+    const lines = processedText.split("\n");
     for (const rawLine of lines) {
       const line = rawLine.trim();
       if (!line) {
         y += lineHeight;
         continue;
       }
-      // dividimos en trozos que quepan en usableWidth
       const wrapped = doc.splitTextToSize(line, usableWidth);
       for (const chunk of wrapped) {
-        // si nos pasamos del fondo, nueva página
         if (y > pageHeight - marginY) {
           doc.addPage();
           y = marginY;
         }
-
         if (/^\d+\.\s/.test(chunk)) {
-          // Cambio: títulos en negrita
+          // títulos en negrita y justificados
           doc.setFont("helvetica", "bold");
-          doc.text(chunk, marginX, y, {
-            maxWidth: usableWidth,
-            align: "left",
-          });
         } else {
-          // Cambio: texto justificado
+          // texto normal
           doc.setFont("helvetica", "normal");
-          doc.text(chunk, marginX, y, {
-            maxWidth: usableWidth,
-            align: "justify",
-          });
         }
-
+        doc.text(chunk, marginX, y, {
+          maxWidth: usableWidth,
+          align: "justify",
+        });
         y += lineHeight;
       }
     }
