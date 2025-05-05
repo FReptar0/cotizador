@@ -1193,7 +1193,7 @@ export default function CotizadorPage() {
                 onClick={handleEnviar}
                 disabled={isDownloading}
               >
-                ENVIAR COTIZACIÓN
+                DESCARGAR COTIZACIÓN
               </Button>
             </Box>
           </Paper>

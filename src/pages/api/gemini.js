@@ -167,7 +167,7 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
       const headerPath = path.join(
         process.cwd(),
         "public",
-        "encabezado-Odoo.jpg"
+        "Encabezado-Odoo.jpg"
       );
       const headerBuffer = fs.readFileSync(headerPath);
       const headerBase64 = headerBuffer.toString("base64");
