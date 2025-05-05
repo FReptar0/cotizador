@@ -131,7 +131,6 @@ Fecha: ${today}
 Datos para la sección 8:
 - Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
 - Implementación: MX$ ${quote} + IVA (con tersoft)
-- Días de entrega aproximados: ${deliveryDays} días
 
 Genera el contenido en español, siguiendo exactamente esas nueve secciones y nada más.
 `;
