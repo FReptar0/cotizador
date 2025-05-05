@@ -142,6 +142,9 @@ export default function CotizadorPage() {
   const [emailError, setEmailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
 
+  // **Nuevo estado** para la pregunta de catálogo de cuentas
+  const [tienenCatalogoCuentas, setTienenCatalogoCuentas] = useState("sí");
+
   // Menú de usuario (si se usa en esta página)
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -198,7 +201,13 @@ export default function CotizadorPage() {
     const urgenciaFactor = safeUrgencia > 0 && safeUrgencia <= 30 ? 1.2 : 1.0;
     const horasTotales = Math.ceil((horasBase + horasExtra) * urgenciaFactor);
     setEstimatedHours(horasTotales);
-    setQuote((horasTotales * 500).toFixed(2));
+
+    // **Cálculo del costo de implementación**:
+    let costoImplementacion = horasTotales * 500;
+    if (tienenCatalogoCuentas === "no") {
+      costoImplementacion += 1000;
+    }
+    setQuote(costoImplementacion.toFixed(2));
 
     // Costo anual de licencias + hosteo
     const costPerUserYear = 4080;
@@ -233,6 +242,7 @@ export default function CotizadorPage() {
     numUsuarios,
     gbStorage,
     testEnvironments,
+    tienenCatalogoCuentas, // ¡No olvides añadirlo a las deps!
   ]);
 
   if (!authChecked) return null;
@@ -906,7 +916,8 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    ¿Importa información inicial?
+                    ¿Se va a crear una empresa nueva y se subirán saldos
+                    iniciales?
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
@@ -941,6 +952,36 @@ export default function CotizadorPage() {
                     <RadioGroup
                       value={integraciones}
                       onChange={(e) => setIntegraciones(e.target.value)}
+                    >
+                      <FormControlLabel
+                        value="sí"
+                        control={<Radio color="primary" />}
+                        label="Sí"
+                      />
+                      <FormControlLabel
+                        value="no"
+                        control={<Radio color="primary" />}
+                        label="No"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </Box>
+
+                {/* cuentas contables*/}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    ¿Ya tienen el catálogo de cuentas contables que se utilizará
+                    en la implementación?
+                  </Typography>
+                  <FormControl component="fieldset" fullWidth>
+                    <RadioGroup
+                      value={tienenCatalogoCuentas}
+                      onChange={(e) => setTienenCatalogoCuentas(e.target.value)}
                     >
                       <FormControlLabel
                         value="sí"
@@ -1150,7 +1191,7 @@ export default function CotizadorPage() {
             {/* Costo anual de licencias */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="body2"
+                variant="body3"
                 sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
               >
                 Costo anual de licencias:
@@ -1175,10 +1216,30 @@ export default function CotizadorPage() {
                 {licenseQuote}
               </Typography> */}
 
-              {/* <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                El costo sin descuento es de 4080 MXN por usuario/año, pero para
-                el primer año se aplica un 10% de descuento.
-              </Typography> */}
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                El costo se paga directamente a odoo
+              </Typography>
+            </Box>
+
+            <Divider sx={{ mb: 2 }} />
+
+            {/* Costo total */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
+                Costo total:
+              </Typography>
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
+                MX${" "}
+                {(
+                  parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
+                ).toFixed(2)}
+              </Typography>
             </Box>
 
             <Divider sx={{ mb: 2 }} />
