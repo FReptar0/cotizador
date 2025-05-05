@@ -55,13 +55,13 @@ const Navbar = ({ onLogout }) => {
         </Button>
 
         {/* Botón para diagnóstico inteligente */}
-        <Button
+        {/* <Button
           variant="text"
           sx={{ color: "#ffffff", mr: 2 }}
           href="/diagnostico-inteligente"
         >
           Diagnóstico inteligente
-        </Button>
+        </Button> */}
 
         {/* Botón para agendar una cita */}
         <Button
