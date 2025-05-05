@@ -59,39 +59,8 @@ const orderRanges = [
   { label: "Más de 500", value: 600 },
 ];
 
-// Lista de módulos (si deseas mantenerla; no influye en la lógica de licencias)
-const odooModules = [
-  { name: "Calidad" },
-  { name: "Contabilidad" },
-  { name: "CRM" },
-  { name: "Compras" },
-  { name: "Documentos" },
-  { name: "Email Marketing" },
-  { name: "Encuestas" },
-  { name: "Empleados" },
-  { name: "Eventos" },
-  { name: "Facturación" },
-  { name: "Field Service" },
-  { name: "Flota" },
-  { name: "Gestión de Almacenes" },
-  { name: "Gestión de Gastos" },
-  { name: "Helpdesk" },
-  { name: "Inventario" },
-  { name: "Manufactura" },
-  { name: "Mantenimiento" },
-  { name: "Marketing" },
-  { name: "Mesa de trabajo" },
-  { name: "Proyectos" },
-  { name: "Punto de Venta" },
-  { name: "Recursos Humanos" },
-  { name: "Sitio Web" },
-  { name: "Suscripciones" },
-  { name: "Ventas" },
-];
-
 // Valida correo
 function validateEmail(email) {
-  // Un regex sencillo y efectivo:
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!regex.test(email)) {
     return "Por favor ingresa un correo válido";
@@ -101,7 +70,7 @@ function validateEmail(email) {
 
 // Valida teléfono (solo dígitos)
 function validatePhone(phone) {
-  const regex = /^[0-9]+$/; // Solo dígitos
+  const regex = /^[0-9]+$/;
   if (!regex.test(phone)) {
     return "Por favor ingresa un número de teléfono válido (solo dígitos)";
   }
@@ -135,7 +104,7 @@ export default function CotizadorPage() {
   // Verificar login
   const [authChecked, setAuthChecked] = useState(false);
 
-  //verificar si se esta descargando
+  // verificar si se esta descargando
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Estados del cotizador
@@ -153,6 +122,10 @@ export default function CotizadorPage() {
   const [multimoneda, setMultimoneda] = useState("no");
   const [hosteo, setHosteo] = useState("Odoo Online");
   const [fechaInicio, setFechaInicio] = useState("Aún no tengo claro");
+
+  // NUEVOS estados para Odoo.sh
+  const [gbStorage, setGbStorage] = useState(1);
+  const [testEnvironments, setTestEnvironments] = useState(1);
 
   // Número de usuarios (licencias)
   const [numUsuarios, setNumUsuarios] = useState(0);
@@ -176,7 +149,7 @@ export default function CotizadorPage() {
   const [quote, setQuote] = useState(0);
   const [estimatedHours, setEstimatedHours] = useState(0);
 
-  // Costos de licencias
+  // Costos de licencias + hosteo
   const [licenseQuote, setLicenseQuote] = useState(0);
   const [licenseQuoteNoDisc, setLicenseQuoteNoDisc] = useState(0);
 
@@ -201,51 +174,33 @@ export default function CotizadorPage() {
       ? 0
       : parseInt(urgenciaDias);
 
+    // NUEVOS valores seguros para Odoo.sh
+    const safeGbStorage = isNaN(parseInt(gbStorage)) ? 1 : parseInt(gbStorage);
+    const safeTestEnvironments = isNaN(parseInt(testEnvironments))
+      ? 1
+      : parseInt(testEnvironments);
+
     // Horas estimadas
     const n_modulos = selectedModules.length;
     let horasBase = 0;
-
-    // Multiplicadores según tipo de implementación
-    if (implementationType === "cliente") {
-      horasBase = n_modulos * 2;
-    } else if (implementationType === "mixta") {
-      horasBase = n_modulos * 6;
-    } else if (implementationType === "completa") {
-      horasBase = n_modulos * 12;
-    }
+    if (implementationType === "cliente") horasBase = n_modulos * 2;
+    else if (implementationType === "mixta") horasBase = n_modulos * 6;
+    else if (implementationType === "completa") horasBase = n_modulos * 12;
 
     // Horas extra
     let horasExtra = 0;
-    if (nEmpresas > 1) {
-      horasExtra += (nEmpresas - 1) * 8;
-    }
-    if (importacionDatos === "sí") {
-      horasExtra += 10;
-    }
-    if (integraciones === "sí") {
-      horasExtra += 15;
-    }
-    if (personalizaciones === "sí") {
-      horasExtra += 15;
-    }
-    if (reportes === "sí") {
-      horasExtra += 8;
-    }
+    if (nEmpresas > 1) horasExtra += (nEmpresas - 1) * 8;
+    if (importacionDatos === "sí") horasExtra += 10;
+    if (integraciones === "sí") horasExtra += 15;
+    if (personalizaciones === "sí") horasExtra += 15;
+    if (reportes === "sí") horasExtra += 8;
 
-    // Factor de urgencia
     const urgenciaFactor = safeUrgencia > 0 && safeUrgencia <= 30 ? 1.2 : 1.0;
-
-    // Cálculo total de horas y costo de implementación
     const horasTotales = Math.ceil((horasBase + horasExtra) * urgenciaFactor);
-    const costoTotal = horasTotales * 500;
     setEstimatedHours(horasTotales);
-    setQuote(costoTotal.toFixed(2));
+    setQuote((horasTotales * 500).toFixed(2));
 
-    // ------------------------------------------------
-    // Costo anual de licencias
-    //   - Precio fijo: 4080 MXN por usuario/año
-    //   - Descuento 10% el primer año
-    // ------------------------------------------------
+    // Costo anual de licencias + hosteo
     const costPerUserYear = 4080;
     const firstYearDiscount = 0.1; // 10%
 
@@ -253,9 +208,17 @@ export default function CotizadorPage() {
     const costoLicenciasPrimerAnio =
       costoLicenciasSinDesc * (1 - firstYearDiscount);
 
-    // Guardamos ambos para mostrarlos
-    setLicenseQuoteNoDisc(costoLicenciasSinDesc.toFixed(2));
-    setLicenseQuote(costoLicenciasPrimerAnio.toFixed(2));
+    let hostingCostAnnual = 0;
+    if (hosteo === "Odoo.sh") {
+      const monthlyHosting =
+        safeNumUsuarios * 1152 + safeGbStorage * 4 + safeTestEnvironments * 288;
+      hostingCostAnnual = monthlyHosting * 12;
+    }
+
+    setLicenseQuoteNoDisc(
+      (costoLicenciasSinDesc + hostingCostAnnual).toFixed(2)
+    );
+    setLicenseQuote((costoLicenciasPrimerAnio + hostingCostAnnual).toFixed(2));
   }, [
     authChecked,
     selectedModules,
@@ -268,6 +231,8 @@ export default function CotizadorPage() {
     reportes,
     hosteo,
     numUsuarios,
+    gbStorage,
+    testEnvironments,
   ]);
 
   if (!authChecked) return null;
@@ -282,21 +247,15 @@ export default function CotizadorPage() {
   };
 
   // Lógica del menú de usuario (si se usa)
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     router.push("/login");
   };
 
-  //enviar datos a gemini
-  // Enviar datos a Gemini con validaciones SweetAlert2
+  // enviar datos a gemini
   const handleEnviar = async () => {
-    // Validar datos del cliente
     if (
       !customerName.trim() ||
       !customerCompany.trim() ||
@@ -310,7 +269,6 @@ export default function CotizadorPage() {
       });
       return;
     }
-    // Validar módulos seleccionados
     if (selectedModules.length === 0) {
       await Swal.fire({
         icon: "warning",
@@ -319,7 +277,6 @@ export default function CotizadorPage() {
       });
       return;
     }
-    // Validar licencias
     const safeNumUsuarios = isNaN(parseInt(numUsuarios))
       ? 0
       : parseInt(numUsuarios);
@@ -352,19 +309,16 @@ export default function CotizadorPage() {
         licenseQuote,
         quote,
         estimatedHours,
+        gbStorage,
+        testEnvironments,
       };
-
       setIsDownloading(true);
       const res = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        throw new Error(`Error ${res.status}: No se pudo generar la propuesta`);
-      }
-
+      if (!res.ok) throw new Error(`Error ${res.status}`);
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -375,7 +329,7 @@ export default function CotizadorPage() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("handleEnviar:", error);
+      console.error(error);
       await Swal.fire({
         icon: "error",
         title: "Error al generar la propuesta",
@@ -637,12 +591,58 @@ export default function CotizadorPage() {
                       <MenuItem value="Odoo.sh">
                         Odoo.sh (flexible, personalizable, en la nube)
                       </MenuItem>
-                      <MenuItem value="On-Premise">
+                      {/* <MenuItem value="On-Premise">
                         On-Premise (en servidores propios o de terceros)
-                      </MenuItem>
+                      </MenuItem> */}
                     </Select>
                   </FormControl>
                 </Box>
+
+                {/* GB y entornos solo para Odoo.sh */}
+                {hosteo === "Odoo.sh" && (
+                  <>
+                    <Box sx={{ mb: 3 }}>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="bold"
+                        color="text.primary"
+                        sx={{ mb: 1 }}
+                      >
+                        GB de almacenamiento
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        type="number"
+                        value={gbStorage}
+                        onChange={(e) =>
+                          setGbStorage(parseInt(e.target.value) || 1)
+                        }
+                        inputProps={{ min: 1 }}
+                      />
+                    </Box>
+                    <Box sx={{ mb: 3 }}>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="bold"
+                        color="text.primary"
+                        sx={{ mb: 1 }}
+                      >
+                        Entornos de pruebas
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        type="number"
+                        value={testEnvironments}
+                        onChange={(e) =>
+                          setTestEnvironments(parseInt(e.target.value) || 1)
+                        }
+                        inputProps={{ min: 1 }}
+                      />
+                    </Box>
+                  </>
+                )}
 
                 {/* Órdenes / Facturas mensuales */}
                 <Box sx={{ mb: 3 }}>
@@ -1173,10 +1173,10 @@ export default function CotizadorPage() {
                 {licenseQuote}
               </Typography> */}
 
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {/* <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 El costo sin descuento es de 4080 MXN por usuario/año, pero para
                 el primer año se aplica un 10% de descuento.
-              </Typography>
+              </Typography> */}
             </Box>
 
             <Divider sx={{ mb: 2 }} />
