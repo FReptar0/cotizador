@@ -164,6 +164,11 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
     // 7b) Insertar encabezado a 100% de ancho, sin márgenes superiores
     try {
       // ruta absoluta a tu carpeta public
+
+      // Cambiamos la ruta a la carpeta public
+      // para que funcione en producción
+      // y en local
+
       const headerPath = path.join(
         process.cwd(),
         "public",
@@ -185,6 +190,7 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
         headerHeight
       );
       // desplazamos Y tras el encabezado
+
       y = headerHeight + marginY;
     } catch (err) {
       console.error("Error cargando encabezado desde disco:", err);
