@@ -476,8 +476,10 @@ export default function CotizadorPage() {
                       borderRadius: 1,
                       p: 3,
                       textAlign: "center",
-                      cursor: "pointer",
-                      "&:hover": { borderColor: "#337ab7" },
+                      opacity: 0.5,
+                      pointerEvents: "none",
+                      cursor: "not-allowed",
+                      mb: 3,
                     }}
                   >
                     <CloudUploadIcon
