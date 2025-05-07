@@ -16,6 +16,7 @@
     "@mui/material": "^7.0.1",
     "jspdf": "^3.0.1",
     "next": "15.2.3",
+    "next-auth": "^4.24.11",
     "odoo-xmlrpc": "^1.0.8",
     "pdf-parse": "^1.1.1",
     "react": "^19.0.0",
