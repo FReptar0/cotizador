@@ -1159,7 +1159,6 @@ export default function CotizadorPage() {
           </Grid>
         </Container>
 
-        {/* Resumen flotante (solo en escritorio) */}
         <Box
           sx={{
             position: "fixed",
@@ -1292,80 +1291,90 @@ export default function CotizadorPage() {
           </Paper>
         </Box>
 
-        {/* Resumen al final (solo en móviles) */}
-        <Box sx={{ display: { xs: "block", md: "none" }, px: 2, pb: 2 }}>
+        <Box
+          sx={{
+            display: { xs: "block", md: "none" },
+            mt: 4,
+            px: 2,
+          }}
+        >
           <Paper
             elevation={1}
-            sx={{ p: 3, borderRadius: 2, backgroundColor: "#f8f9fa" }}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              backgroundColor: "#f8f9fa",
+            }}
           >
-            <Typography
-              variant="h6"
-              fontWeight="bold"
-              color="text.primary"
-              sx={{ mb: 2 }}
-            >
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
               Resumen
             </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
               <strong>Módulos seleccionados:</strong> {selectedModules.length}
             </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
               <strong>Horas estimadas:</strong> {estimatedHours} horas
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
-            {/* Costo de implementación en móvil */}
+            {/* Costo de implementación */}
             <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="body2"
-                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
-              >
+              <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
                 Costo de implementación:
               </Typography>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
-              >
+              <Typography variant="h4" fontWeight="bold">
                 MX$ {quote}
+              </Typography>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                display="block"
+                sx={{ mt: 1 }}
+              >
+                *Este costo es aproximado. Para una cotización más precisa,
+                contáctenos.
               </Typography>
             </Box>
 
             <Divider sx={{ my: 2 }} />
 
-            {/* Costo anual de licencias en móvil */}
+            {/* Costo anual de licencias */}
             <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="body2"
-                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
-              >
+              <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
                 Costo anual de licencias:
               </Typography>
-
-              {/* SIN DESCUENTO */}
-              <Typography variant="body2" color="text.primary">
-                <strong>Precio regular:</strong> MX$ {licenseQuoteNoDisc}
+              <Typography variant="h4" fontWeight="bold">
+                MX$ {licenseQuote}
               </Typography>
-
-              {/* CON DESCUENTO */}
-              <Typography variant="body2" color="text.primary">
-                <strong>10% desc. 1er año:</strong> MX$ {licenseQuote}
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                <strong>Regular:</strong> MX$ {licenseQuoteNoDisc}
               </Typography>
-
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                El costo sin descuento es de 4080 MXN por usuario/año, pero para
-                el primer año se aplica un 10% de descuento.
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                El costo se paga directamente a Odoo
               </Typography>
             </Box>
 
             <Divider sx={{ mb: 2 }} />
 
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}
-            >
-              <Button variant="contained" color="primary" fullWidth>
-                ENVIAR COTIZACIÓN
-              </Button>
+            {/* Costo total */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
+                Costo total:
+              </Typography>
+              <Typography variant="h4" fontWeight="bold">
+                MX$ {(parseFloat(quote) + parseFloat(licenseQuote)).toFixed(2)}
+              </Typography>
             </Box>
+
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={handleDownloadAndSend}
+              disabled={isDownloading}
+            >
+              {isDownloading ? "Procesando…" : "Descargar y enviar por correo"}
+            </Button>
           </Paper>
         </Box>
       </Box>
