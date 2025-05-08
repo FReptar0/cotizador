@@ -382,6 +382,7 @@ export default function CotizadorPage() {
     <ThemeProvider theme={theme}>
       <Head>
         <title>Cotizador de Proyecto | Tersoft.mx</title>
+        <link rel="icon" href="/Tersoft.webp" />
         <meta name="description" content="Cotizador Odoo" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
