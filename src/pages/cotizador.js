@@ -254,7 +254,8 @@ export default function CotizadorPage() {
   const handleMenuClose = () => setAnchorEl(null);
 
   // enviar datos a gemini
-  const handleEnviar = async () => {
+  const handleDownloadAndSend = async () => {
+    // 1) Validaciones básicas
     if (
       !customerName.trim() ||
       !customerCompany.trim() ||
@@ -288,6 +289,8 @@ export default function CotizadorPage() {
       return;
     }
 
+    setIsDownloading(true);
+
     try {
       const payload = {
         customerName,
@@ -311,14 +314,15 @@ export default function CotizadorPage() {
         gbStorage,
         testEnvironments,
       };
-      setIsDownloading(true);
-      const res = await fetch("/api/gemini", {
+
+      // 2) Generar y descargar el PDF
+      const pdfRes = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const blob = await res.blob();
+      if (!pdfRes.ok) throw new Error(`Error generando PDF (${pdfRes.status})`);
+      const blob = await pdfRes.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -327,13 +331,43 @@ export default function CotizadorPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+
+      // 3) Enviar el PDF por correo (uso mismo blob)
+      // Convertimos blob a Base64
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const base64 = dataUrl.split(",")[1];
+
+      const mailRes = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerEmail,
+          customerName,
+          customerCompany,
+          pdfBase64: base64,
+        }),
+      });
+      const mailText = await mailRes.text();
+      console.log("📤 /api/send-email respondió:", mailRes.status, mailText);
+      if (!mailRes.ok) throw new Error(mailText);
+
+      await Swal.fire(
+        "¡Listo!",
+        "PDF descargado y enviado por correo.",
+        "success"
+      );
     } catch (error) {
       console.error(error);
-      await Swal.fire({
-        icon: "error",
-        title: "Error al generar la propuesta",
-        text: "¡Ups! Hubo un problema generando la propuesta. Por favor, inténtalo de nuevo.",
-      });
+      await Swal.fire(
+        "Error",
+        "Ocurrió un problema descargando o enviando la propuesta.",
+        "error"
+      );
     } finally {
       setIsDownloading(false);
     }
@@ -1241,14 +1275,17 @@ export default function CotizadorPage() {
             <Box
               sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}
             >
+              {" "}
               <Button
                 variant="contained"
                 color="primary"
                 fullWidth
-                onClick={handleEnviar}
+                onClick={handleDownloadAndSend}
                 disabled={isDownloading}
               >
-                DESCARGAR COTIZACIÓN
+                {isDownloading
+                  ? "Procesando…"
+                  : "Descargar y enviar por correo"}
               </Button>
             </Box>
           </Paper>
