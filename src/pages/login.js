@@ -70,7 +70,7 @@ export default function LoginPage() {
               gutterBottom
               color="text.primary"
             >
-              Inicia sesión con Google
+              Inicia sesión
             </Typography>
 
             <Divider sx={{ mb: 3 }} />
@@ -79,12 +79,35 @@ export default function LoginPage() {
               <Typography>Cargando sesión...</Typography>
             ) : (
               <Button
-                variant="contained"
-                color="primary"
                 fullWidth
+                variant="outlined"
                 onClick={() => signIn("google")}
+                startIcon={
+                  <Box
+                    component="img"
+                    src="/google-logo.svg"
+                    alt="G"
+                    sx={{ width: 24, height: 24 }}
+                  />
+                }
+                sx={{
+                  textTransform: "none",
+                  justifyContent: "center",
+                  fontWeight: "bold",
+                  borderRadius: 2,
+                  border: "1px solid #ddd",
+                  color: "#555",
+                  backgroundColor: "#fff",
+                  "&:hover": {
+                    backgroundColor: "#f7f7f7",
+                    borderColor: "#ccc",
+                  },
+                  px: 2,
+                  py: 1.5,
+                  fontSize: 16,
+                }}
               >
-                Iniciar sesión con Google
+                Continuar con Google
               </Button>
             )}
           </Paper>
