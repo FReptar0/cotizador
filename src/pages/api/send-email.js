@@ -87,7 +87,6 @@ export default async function handler(req, res) {
       <hr style="border:none; border-top:1px solid #eee; margin:2em 0 1em;"/>
       <small style="color:#999;">
         Este correo fue enviado por Tersoft Cotizador.<br/>
-        Si no deseas recibir estos mensajes, por favor responde a este correo con “Baja”.
       </small>
     </div>
   `,
