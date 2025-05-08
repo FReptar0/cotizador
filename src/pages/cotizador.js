@@ -1,6 +1,8 @@
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
+import { signOut } from "next-auth/react"; // ← importa signOut
+import { useSession } from "next-auth/react"; // ← importa useSession
 import Swal from "sweetalert2";
 import {
   Container,
@@ -81,6 +83,8 @@ export default function CotizadorPage() {
   const router = useRouter();
   const inputRef = useRef(null);
 
+  const { data: session, status } = useSession();
+
   // Drag & Drop handlers
   const handleDragOver = (e) => e.preventDefault();
   const handleDrop = (e) => {
@@ -100,9 +104,6 @@ export default function CotizadorPage() {
       setFileName(file.name);
     }
   };
-
-  // Verificar login
-  const [authChecked, setAuthChecked] = useState(false);
 
   // verificar si se esta descargando
   const [isDownloading, setIsDownloading] = useState(false);
@@ -156,19 +157,14 @@ export default function CotizadorPage() {
   const [licenseQuote, setLicenseQuote] = useState(0);
   const [licenseQuoteNoDisc, setLicenseQuoteNoDisc] = useState(0);
 
+  // 1.a) Hook de redirección (si no hay sesión)
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) {
+    if (status === "unauthenticated") {
       router.replace("/login");
-    } else {
-      setAuthChecked(true);
     }
-  }, [router]);
-
+  }, [status, router]);
   // Lógica de cálculo principal
   useEffect(() => {
-    if (!authChecked) return;
-
     // Manejo seguro de NaN
     const safeNumUsuarios = isNaN(parseInt(numUsuarios))
       ? 0
@@ -229,7 +225,6 @@ export default function CotizadorPage() {
     );
     setLicenseQuote((costoLicenciasPrimerAnio + hostingCostAnnual).toFixed(2));
   }, [
-    authChecked,
     selectedModules,
     implementationType,
     nEmpresas,
@@ -245,8 +240,6 @@ export default function CotizadorPage() {
     tienenCatalogoCuentas, // ¡No olvides añadirlo a las deps!
   ]);
 
-  if (!authChecked) return null;
-
   // Manejo de cambio en módulos
   const handleModuleChange = (moduleName) => {
     setSelectedModules((prev) =>
@@ -256,13 +249,9 @@ export default function CotizadorPage() {
     );
   };
 
-  // Lógica del menú de usuario (si se usa)
+  // lógica del menú de usuario
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    router.push("/login");
-  };
 
   // enviar datos a gemini
   const handleEnviar = async () => {
@@ -349,6 +338,11 @@ export default function CotizadorPage() {
       setIsDownloading(false);
     }
   };
+
+  // 2) AHORA el guard para el loading de NextAuth:
+  if (status === "loading") {
+    return null; // o un spinner
+  }
 
   return (
     <ThemeProvider theme={theme}>

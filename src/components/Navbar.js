@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { signOut } from "next-auth/react"; // 👈 importamos signOut
 import {
   AppBar,
   Toolbar,
@@ -10,7 +11,7 @@ import {
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
-const Navbar = ({ onLogout }) => {
+const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenuOpen = (event) => {
@@ -19,11 +20,13 @@ const Navbar = ({ onLogout }) => {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    }
+
+  const handleLogout = async () => {
     handleMenuClose();
+    // Si usas un flag de localStorage para proteger rutas, lo limpiamos
+    localStorage.removeItem("isLoggedIn");
+    // Cierra sesión en NextAuth y redirige a /login
+    await signOut({ callbackUrl: "/login" });
   };
 
   const handleCita = () => {
@@ -45,7 +48,6 @@ const Navbar = ({ onLogout }) => {
           Cotizador para proyectos Odoo | Tersoft
         </Typography>
 
-        {/* Botón para cotizador tradicional */}
         <Button
           variant="text"
           sx={{ color: "#ffffff", mr: 2 }}
@@ -54,16 +56,6 @@ const Navbar = ({ onLogout }) => {
           Cotizador
         </Button>
 
-        {/* Botón para diagnóstico inteligente */}
-        {/* <Button
-          variant="text"
-          sx={{ color: "#ffffff", mr: 2 }}
-          href="/diagnostico-inteligente"
-        >
-          Diagnóstico inteligente
-        </Button> */}
-
-        {/* Botón para agendar una cita */}
         <Button
           variant="text"
           sx={{ color: "#ffffff", mr: 2 }}
@@ -72,7 +64,6 @@ const Navbar = ({ onLogout }) => {
           Agende una cita
         </Button>
 
-        {/* Menú de usuario */}
         <IconButton color="inherit" onClick={handleMenuOpen}>
           <AccountCircleIcon />
         </IconButton>
