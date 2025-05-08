@@ -37,6 +37,7 @@ export default function LoginPage() {
     <ThemeProvider theme={theme}>
       <Head>
         <title>Iniciar Sesión | Tersoft.mx</title>
+        <link rel="icon" href="/Tersoft.webp" />
         <meta name="description" content="Página de Login para Cotizador" />
       </Head>
 
