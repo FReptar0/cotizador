@@ -496,7 +496,7 @@ export default function CotizadorPage() {
                 </Box>
 
                 {/* Subir transcripción (archivo TXT) */}
-                <Box sx={{ mb: 3 }}>
+                {/* <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
                     fontWeight="bold"
@@ -578,7 +578,7 @@ export default function CotizadorPage() {
                       </IconButton>
                     </Box>
                   )}
-                </Box>
+                </Box> */}
 
                 {/* Número de usuarios (licencias) */}
                 <Box sx={{ mb: 3 }}>
