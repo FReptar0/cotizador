@@ -719,6 +719,41 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
+                {/* Parámetros del proyecto */}
+                {/* 1. Personal interno */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    ¿Tienen personal interno que podría implementar el sistema?
+                  </Typography>
+                  <FormControl component="fieldset" fullWidth>
+                    <RadioGroup
+                      value={implementationType}
+                      onChange={(e) => setImplementationType(e.target.value)}
+                    >
+                      <FormControlLabel
+                        value="cliente"
+                        control={<Radio color="primary" />}
+                        label="Sí, contamos con equipo técnico"
+                      />
+                      <FormControlLabel
+                        value="mixta"
+                        control={<Radio color="primary" />}
+                        label="Parcialmente (necesitaríamos guía)"
+                      />
+                      <FormControlLabel
+                        value="completa"
+                        control={<Radio color="primary" />}
+                        label="No, requerimos implementación completa"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </Box>
+
                 {/* Sección de módulos con diseño separado por grupos */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
@@ -863,41 +898,6 @@ export default function CotizadorPage() {
                   </Grid>
                 </Box>
 
-                {/* Parámetros del proyecto */}
-                {/* 1. Personal interno */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="text.primary"
-                    sx={{ mb: 1 }}
-                  >
-                    ¿Tienen personal interno que podría implementar el sistema?
-                  </Typography>
-                  <FormControl component="fieldset" fullWidth>
-                    <RadioGroup
-                      value={implementationType}
-                      onChange={(e) => setImplementationType(e.target.value)}
-                    >
-                      <FormControlLabel
-                        value="cliente"
-                        control={<Radio color="primary" />}
-                        label="Sí, contamos con equipo técnico"
-                      />
-                      <FormControlLabel
-                        value="mixta"
-                        control={<Radio color="primary" />}
-                        label="Parcialmente (necesitaríamos guía)"
-                      />
-                      <FormControlLabel
-                        value="completa"
-                        control={<Radio color="primary" />}
-                        label="No, requerimos implementación completa"
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                </Box>
-
                 {/* 2. Número de empresas */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
@@ -925,7 +925,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Días hasta la entrega
+                    ¿En cuantos días le gustaria tener funcionando el sistema?
                   </Typography>
                   <TextField
                     fullWidth
@@ -933,7 +933,6 @@ export default function CotizadorPage() {
                     type="number"
                     value={urgenciaDias}
                     onChange={(e) => setUrgenciaDias(e.target.value)}
-                    helperText="Si es ≤ 30 se aplica +20%"
                   />
                 </Box>
 
@@ -1112,45 +1111,6 @@ export default function CotizadorPage() {
                     </RadioGroup>
                   </FormControl>
                 </Box>
-
-                {/* 9. Fecha estimada */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="text.primary"
-                    sx={{ mb: 1 }}
-                  >
-                    Fecha estimada de inicio del proyecto
-                  </Typography>
-                  <FormControl component="fieldset" fullWidth>
-                    <RadioGroup
-                      value={fechaInicio}
-                      onChange={(e) => setFechaInicio(e.target.value)}
-                    >
-                      <FormControlLabel
-                        value="Inmediatamente"
-                        control={<Radio color="primary" />}
-                        label="Inmediatamente"
-                      />
-                      <FormControlLabel
-                        value="En 1-2 meses"
-                        control={<Radio color="primary" />}
-                        label="En 1-2 meses"
-                      />
-                      <FormControlLabel
-                        value="En 3-6 meses"
-                        control={<Radio color="primary" />}
-                        label="En 3-6 meses"
-                      />
-                      <FormControlLabel
-                        value="Aún no tengo claro"
-                        control={<Radio color="primary" />}
-                        label="Aún no tengo claro"
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                </Box>
               </Paper>
             </Grid>
 
@@ -1291,6 +1251,7 @@ export default function CotizadorPage() {
           </Paper>
         </Box>
 
+        {/* Resumen en móvil */}
         <Box
           sx={{
             display: { xs: "block", md: "none" },
@@ -1304,6 +1265,7 @@ export default function CotizadorPage() {
               p: 3,
               borderRadius: 2,
               backgroundColor: "#f8f9fa",
+              mb: 2,
             }}
           >
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
