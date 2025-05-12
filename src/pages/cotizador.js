@@ -410,11 +410,10 @@ export default function CotizadorPage() {
                   gutterBottom
                   color="text.primary"
                 >
-                  Estimador del proyecto
+                  Cotizador de Proyectos de Odoo
                 </Typography>
                 <Typography variant="body1" color="text.primary" sx={{ mb: 3 }}>
-                  Complete los siguientes campos para obtener la estimación de
-                  horas, costo y recomendaciones clave.
+                  Obtenga en minutos una estimación de su proyecto de Odoo.
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
 
@@ -588,7 +587,8 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Número de usuarios (licencias)
+                    Número de usuarios que usarán de forma concurrente el
+                    sistema
                   </Typography>
                   <TextField
                     fullWidth
@@ -596,6 +596,7 @@ export default function CotizadorPage() {
                     type="number"
                     value={numUsuarios}
                     onChange={(e) => setNumUsuarios(e.target.value)}
+                    m
                     inputProps={{ min: 1 }}
                   />
                 </Box>
@@ -608,7 +609,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Tipo de hosteo
+                    Elija el tipo de alojamiento necesita su proyecto
                   </Typography>
                   <FormControl fullWidth variant="outlined">
                     <InputLabel id="hosteo-label" color="primary">
@@ -693,7 +694,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Órdenes / Facturas mensuales
+                    Numero estimado de facturas mensuales
                   </Typography>
                   <FormControl fullWidth variant="outlined">
                     <InputLabel id="orders-range-label" color="primary">
@@ -728,7 +729,8 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    ¿Tienen personal interno que podría implementar el sistema?
+                    ¿Su empresa tiene personal que pueda hacer la implementación
+                    de Odoo?
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
