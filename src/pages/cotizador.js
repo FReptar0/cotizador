@@ -1187,24 +1187,17 @@ export default function CotizadorPage() {
                 Costo anual de licencias:
               </Typography>
 
+              {/* Precio SIN Descuento */}
+              <Typography variant="body2" color="text.primary">
+                <strong>Precio regular:</strong> MX$ {licenseQuoteNoDisc}
+              </Typography>
+
               <Typography
                 variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
+                sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
                 MX$ {licenseQuote}
               </Typography>
-
-              {/* Precio SIN Descuento */}
-              <Typography variant="body2" color="text.primary">
-                <strong>Precio regular (sin descuento):</strong> MX${" "}
-                {licenseQuoteNoDisc}
-              </Typography>
-
-              {/* Precio con Descuento */}
-              {/* <Typography variant="body2" color="text.primary">
-                <strong>Con 10% de descuento (1er año):</strong> MX${" "}
-                {licenseQuote}
-              </Typography> */}
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 El costo se paga directamente a odoo
