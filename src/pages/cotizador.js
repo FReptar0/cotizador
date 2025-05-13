@@ -408,7 +408,10 @@ export default function CotizadorPage() {
                   variant="h5"
                   fontWeight="bold"
                   gutterBottom
-                  color="text.primary"
+                  sx={{
+                    color: "#01a09d", // Cambiar el color del texto
+                    fontSize: "2.5rem", // Hacer el texto un poco más grande
+                  }}
                 >
                   Cotizador de Proyectos de Odoo
                 </Typography>
@@ -1194,7 +1197,7 @@ export default function CotizadorPage() {
 
               <Typography
                 variant="h3"
-                sx={{ fontWeight: "bold", color: "#a4478d" }}
+                sx={{ fontWeight: "bold", color: "#000000" }}
               >
                 MX$ {licenseQuote}
               </Typography>
@@ -1216,7 +1219,7 @@ export default function CotizadorPage() {
               </Typography>
               <Typography
                 variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
+                sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
                 MX${" "}
                 {(
@@ -1233,10 +1236,24 @@ export default function CotizadorPage() {
               {" "}
               <Button
                 variant="contained"
-                color="primary"
                 fullWidth
                 onClick={handleDownloadAndSend}
                 disabled={isDownloading}
+                sx={{
+                  fontSize: "1rem", // Hacer el texto más grande
+                  padding: "1rem 1.5rem", // Aumentar el tamaño del botón
+                  backgroundColor: "#a4478d", // Cambiar el color del botón
+                  color: "#ffffff", // Color del texto
+                  transition: "transform 0.2s ease-in-out", // Agregar animación
+                  "&:hover": {
+                    backgroundColor: "#922c76", // Color al pasar el mouse
+                    transform: "scale(1.05)", // Escalar ligeramente al pasar el mouse
+                  },
+                  "&:disabled": {
+                    backgroundColor: "#d3d3d3", // Color cuando está deshabilitado
+                    color: "#8c8c8c",
+                  },
+                }}
               >
                 {isDownloading
                   ? "Procesando…"
