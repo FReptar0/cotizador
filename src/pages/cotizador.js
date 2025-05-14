@@ -776,7 +776,7 @@ export default function CotizadorPage() {
                                     Tu equipo domina Python, PostgreSQL y
                                     servidores Linux
                                   </Typography>
-                                  <List sx={{ pl: 2, m: 0 }}>
+                                  <List sx={{ pl: 1, m: 0 }}>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
@@ -872,7 +872,7 @@ export default function CotizadorPage() {
                                     variant="subtitle2"
                                     sx={{ mb: 1, fontWeight: "bold" }}
                                   >
-                                    Proyecto llave en mano
+                                    Delegas el 100 % a TerSoft
                                   </Typography>
                                   <List sx={{ pl: 2, m: 0 }}>
                                     <ListItem
@@ -1101,8 +1101,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    ¿Se va a crear una empresa nueva y se subirán saldos
-                    iniciales?
+                    ¿Se trasladan saldos iniciales en una nueva base de datos?
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
