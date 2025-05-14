@@ -23,12 +23,20 @@ import {
   TextField,
   RadioGroup,
   Radio,
+  Tooltip,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  ListItemButton,
+  Avatar,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Chip from "@mui/material/Chip";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import InfoIcon from "@mui/icons-material/Info"; // Import InfoIcon
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 // Configuración del tema con la nueva paleta
@@ -408,7 +416,10 @@ export default function CotizadorPage() {
                   variant="h5"
                   fontWeight="bold"
                   gutterBottom
-                  color="text.primary"
+                  sx={{
+                    color: "#01a09d", // Cambiar el color del texto
+                    fontSize: "2.5rem", // Hacer el texto un poco más grande
+                  }}
                 >
                   Cotizador de Proyectos de Odoo
                 </Typography>
@@ -732,25 +743,169 @@ export default function CotizadorPage() {
                     ¿Su empresa tiene personal que pueda hacer la implementación
                     de Odoo?
                   </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    El éxito del proyecto depende de quién configure, pruebe y
+                    ponga en marcha el sistema. Selecciona la opción que mejor
+                    describa tus recursos actuales.
+                  </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
                       value={implementationType}
                       onChange={(e) => setImplementationType(e.target.value)}
                     >
+                      {/* Opción 1: Cliente */}
                       <FormControlLabel
                         value="cliente"
                         control={<Radio color="primary" />}
-                        label="Sí, contamos con equipo técnico"
+                        label={
+                          <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <span>Sí, contamos con equipo técnico</span>
+                            <Tooltip
+                              arrow
+                              placement="right"
+                              title={
+                                <Box>
+                                  <Typography
+                                    variant="subtitle2"
+                                    sx={{ mb: 1, fontWeight: "bold" }}
+                                  >
+                                    Tu equipo domina Python, PostgreSQL y
+                                    servidores Linux
+                                  </Typography>
+                                  <List sx={{ pl: 1, m: 0 }}>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Licencias oficiales y guía de mejores
+                                      prácticas
+                                    </ListItem>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Reunión de arranque + soporte de 2º nivel
+                                    </ListItem>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      No incluye parametrización ni capacitación
+                                      extensa
+                                    </ListItem>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Perfecto para empresas “DIY”
+                                    </ListItem>
+                                  </List>
+                                </Box>
+                              }
+                            >
+                              <InfoIcon sx={{ ml: 1, cursor: "pointer" }} />
+                            </Tooltip>
+                          </Box>
+                        }
                       />
+
+                      {/* Opción 2: Mixta */}
                       <FormControlLabel
                         value="mixta"
                         control={<Radio color="primary" />}
-                        label="Parcialmente (necesitaríamos guía)"
+                        label={
+                          <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <span>Parcialmente (necesitaríamos guía)</span>
+                            <Tooltip
+                              arrow
+                              placement="right"
+                              title={
+                                <Box>
+                                  <Typography
+                                    variant="subtitle2"
+                                    sx={{ mb: 1, fontWeight: "bold" }}
+                                  >
+                                    Talento interno + apoyo puntual
+                                  </Typography>
+                                  <List sx={{ pl: 2, m: 0 }}>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Paquetes de consultoría y talleres
+                                      train-the-trainer
+                                    </ListItem>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Revisiones quincenales y validación de
+                                      código
+                                    </ListItem>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Responsabilidad compartida: velocidad y
+                                      aprendizaje
+                                    </ListItem>
+                                  </List>
+                                </Box>
+                              }
+                            >
+                              <InfoIcon sx={{ ml: 1, cursor: "pointer" }} />
+                            </Tooltip>
+                          </Box>
+                        }
                       />
+
+                      {/* Opción 3: Completa */}
                       <FormControlLabel
                         value="completa"
                         control={<Radio color="primary" />}
-                        label="No, requerimos implementación completa"
+                        label={
+                          <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <span>No, requerimos implementación completa</span>
+                            <Tooltip
+                              arrow
+                              placement="right"
+                              title={
+                                <Box>
+                                  <Typography
+                                    variant="subtitle2"
+                                    sx={{ mb: 1, fontWeight: "bold" }}
+                                  >
+                                    Delegas el 100 % a TerSoft
+                                  </Typography>
+                                  <List sx={{ pl: 2, m: 0 }}>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Levantamiento de procesos y
+                                      parametrización
+                                    </ListItem>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Desarrollos y plan de gestión del cambio
+                                    </ListItem>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Capacitación a usuarios y soporte 1º-2º
+                                      nivel
+                                    </ListItem>
+                                    <ListItem
+                                      sx={{ display: "list-item", py: 0 }}
+                                    >
+                                      Tiempo y costo garantizados bajo
+                                      metodología Cero Riesgos
+                                    </ListItem>
+                                  </List>
+                                </Box>
+                              }
+                            >
+                              <InfoIcon sx={{ ml: 1, cursor: "pointer" }} />
+                            </Tooltip>
+                          </Box>
+                        }
                       />
                     </RadioGroup>
                   </FormControl>
@@ -946,8 +1101,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    ¿Se va a crear una empresa nueva y se subirán saldos
-                    iniciales?
+                    ¿Se trasladan saldos iniciales en una nueva base de datos?
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
@@ -1194,7 +1348,7 @@ export default function CotizadorPage() {
 
               <Typography
                 variant="h3"
-                sx={{ fontWeight: "bold", color: "#a4478d" }}
+                sx={{ fontWeight: "bold", color: "#000000" }}
               >
                 MX$ {licenseQuote}
               </Typography>
@@ -1216,7 +1370,7 @@ export default function CotizadorPage() {
               </Typography>
               <Typography
                 variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
+                sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
                 MX${" "}
                 {(
@@ -1233,10 +1387,24 @@ export default function CotizadorPage() {
               {" "}
               <Button
                 variant="contained"
-                color="primary"
                 fullWidth
                 onClick={handleDownloadAndSend}
                 disabled={isDownloading}
+                sx={{
+                  fontSize: "1rem", // Hacer el texto más grande
+                  padding: "1rem 1.5rem", // Aumentar el tamaño del botón
+                  backgroundColor: "#a4478d", // Cambiar el color del botón
+                  color: "#ffffff", // Color del texto
+                  transition: "transform 0.2s ease-in-out", // Agregar animación
+                  "&:hover": {
+                    backgroundColor: "#922c76", // Color al pasar el mouse
+                    transform: "scale(1.05)", // Escalar ligeramente al pasar el mouse
+                  },
+                  "&:disabled": {
+                    backgroundColor: "#d3d3d3", // Color cuando está deshabilitado
+                    color: "#8c8c8c",
+                  },
+                }}
               >
                 {isDownloading
                   ? "Procesando…"
