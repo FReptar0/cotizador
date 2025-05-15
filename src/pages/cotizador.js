@@ -387,6 +387,15 @@ export default function CotizadorPage() {
     return null; // o un spinner
   }
 
+  // Formatea números con separador de miles coma y dos decimales
+  const formatPrice = (value) => {
+    const number = typeof value === "string" ? parseFloat(value) : value;
+    if (isNaN(number)) return "0.00";
+    return number
+      .toFixed(2) // dos decimales con punto
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ","); // miles con coma
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Head>
@@ -1353,7 +1362,7 @@ export default function CotizadorPage() {
             {/* Costo de implementación */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="h6" // Make text larger
+                variant="h5" // Make text larger
                 fontWeight="bold"
                 color="#007BFF" // Use the blue color
                 sx={{ mb: 1 }}
@@ -1364,7 +1373,7 @@ export default function CotizadorPage() {
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {quote}
+                MX$ {formatPrice(quote)}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 *Este costo es una aproximación y puede variar según los
@@ -1378,7 +1387,7 @@ export default function CotizadorPage() {
             {/* Costo anual de licencias */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="h6"
+                variant="h5"
                 fontWeight="bold"
                 color="#007BFF"
                 sx={{ mb: 1 }}
@@ -1388,14 +1397,15 @@ export default function CotizadorPage() {
 
               {/* Precio SIN Descuento */}
               <Typography variant="body2" color="text.primary">
-                <strong>Precio regular:</strong> MX$ {licenseQuoteNoDisc}
+                <strong>Precio regular:</strong> MX${" "}
+                {formatPrice(licenseQuoteNoDisc)}
               </Typography>
 
               <Typography
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {licenseQuote}
+                MX$ {formatPrice(licenseQuote)}
               </Typography>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -1408,7 +1418,7 @@ export default function CotizadorPage() {
             {/* Costo total */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="h6" // Make text larger
+                variant="h5" // Make text larger
                 fontWeight="bold"
                 color="#a4478d" // Use the blue color
                 sx={{ mb: 1 }}
@@ -1420,9 +1430,9 @@ export default function CotizadorPage() {
                 sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
                 MX${" "}
-                {(
+                {formatPrice(
                   parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
-                ).toFixed(2)}
+                )}
               </Typography>
             </Box>
 
@@ -1507,7 +1517,7 @@ export default function CotizadorPage() {
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {quote}
+                MX$ {quote.toLocaleString("en-US")}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 *Este costo es una aproximación y puede variar según los
@@ -1531,14 +1541,15 @@ export default function CotizadorPage() {
 
               {/* Precio SIN Descuento */}
               <Typography variant="body2" color="text.primary">
-                <strong>Precio regular:</strong> MX$ {licenseQuoteNoDisc}
+                <strong>Precio regular:</strong> MX${" "}
+                {licenseQuoteNoDisc.toLocaleString("en-US")}
               </Typography>
 
               <Typography
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {licenseQuote}
+                MX$ {licenseQuote.toLocaleString("en-US")}
               </Typography>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -1565,7 +1576,7 @@ export default function CotizadorPage() {
                 MX${" "}
                 {(
                   parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
-                ).toFixed(2)}
+                ).toLocaleString("en-US")}
               </Typography>
             </Box>
 
