@@ -1,5 +1,6 @@
 // pages/api/send-email.js
 import nodemailer from "nodemailer";
+import path from "path";
 
 export default async function handler(req, res) {
   console.log("📬 /api/send-email llamada");
@@ -40,6 +41,14 @@ export default async function handler(req, res) {
       text: `Hola ${customerName}, adjunto tu propuesta de Odoo.`,
       html: `
     <div style="font-family:Arial,sans-serif; color:#333; line-height:1.5; max-width:600px; margin:0 auto;">
+
+
+      <img 
+        src="cid:headerImg" 
+        alt="Tersoft" 
+        style="width:100%; max-width:600px; display:block; margin-bottom:1em;"
+      />
+
       <h2 style="color:#337ab7; margin-bottom:0.5em;">¡Hola ${customerName}!</h2>
       <p>En <a href="https://tersoft.mx" style="color:#337ab7; text-decoration:none;">Tersoft</a> queremos agradecerte por confiar en nosotros para tu proyecto de implementación de Odoo.</p>
       
@@ -93,6 +102,11 @@ export default async function handler(req, res) {
           filename: "Propuesta-Odoo.pdf",
           content: Buffer.from(pdfBase64, "base64"),
           contentType: "application/pdf",
+        },
+        {
+          filename: "foto-email.png",
+          path: path.join(process.cwd(), "public", "foto-email.jpeg"),
+          cid: "headerImg", // Referencia para la imagen en el HTML
         },
       ],
     });
