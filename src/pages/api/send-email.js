@@ -12,9 +12,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Faltan datos obligatorios" });
   }
 
-  // 1) Configura tu cuenta de Gmail (app password) en .env:
-  //    SMTP_USER=tu.email@gmail.com
-  //    SMTP_PASS=************* (el App Password de Google)
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -38,7 +35,7 @@ export default async function handler(req, res) {
     const info = await transporter.sendMail({
       from: `"Tersoft Cotización" <${process.env.SMTP_USER}>`,
       to: customerEmail,
-      bcc: "yahir.dev13@gmail.com",
+      bcc: "alberto.hernandez@tersoft.mx",
       subject: "Tu propuesta de implementación de Odoo | Tersoft",
       text: `Hola ${customerName}, adjunto tu propuesta de Odoo.`,
       html: `
