@@ -635,7 +635,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Odoo online es la version mas popular ya que incluye
+                    Odoo online es la versión más popular ya que incluye
                     alojamiento en la nube y todas las aplicaciones nativas que
                     su empresa necesita
                   </Typography>
@@ -718,7 +718,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Numero estimado de facturas mensuales
+                    número estimado de facturas mensuales
                   </Typography>
                   <FormControl fullWidth variant="outlined">
                     <InputLabel id="orders-range-label" color="primary">
