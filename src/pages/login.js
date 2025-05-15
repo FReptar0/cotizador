@@ -79,7 +79,7 @@ export default function LandingLoginPage() {
                 textShadow: "2px 2px 4px rgba(0,0,0,0.6)",
               }}
             >
-              Cotiza tu mismo tu proyecto de Odoo
+              Cotiza tú mismo tu proyecto de Odoo
             </Typography>
             <Typography
               variant="h6"
