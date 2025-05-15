@@ -609,10 +609,12 @@ export default function CotizadorPage() {
                     fullWidth
                     variant="outlined"
                     type="number"
-                    value={numUsuarios}
-                    onChange={(e) => setNumUsuarios(e.target.value)}
-                    m
-                    inputProps={{ min: 1 }}
+                    value={numUsuarios || 5} // Default to 5 if undefined
+                    onChange={(e) => {
+                      const value = Math.max(1, parseInt(e.target.value) || 1); // Ensure minimum value is 1
+                      setNumUsuarios(value);
+                    }}
+                    inputProps={{ min: 1 }} // Prevent input below 1
                   />
                 </Box>
 
@@ -1333,9 +1335,9 @@ export default function CotizadorPage() {
             }}
           >
             <Typography
-              variant="h6"
+              variant="h5" // Make text larger
               fontWeight="bold"
-              color="text.primary"
+              color="#007BFF" // Use the blue color
               sx={{ mb: 2 }}
             >
               Resumen
@@ -1351,8 +1353,10 @@ export default function CotizadorPage() {
             {/* Costo de implementación */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="body2"
-                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+                variant="h6" // Make text larger
+                fontWeight="bold"
+                color="#007BFF" // Use the blue color
+                sx={{ mb: 1 }}
               >
                 Costo de implementación:
               </Typography>
@@ -1374,10 +1378,12 @@ export default function CotizadorPage() {
             {/* Costo anual de licencias */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="body3"
-                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+                variant="h6"
+                fontWeight="bold"
+                color="#007BFF"
+                sx={{ mb: 1 }}
               >
-                Costo anual de licencias:
+                Costo anual de {numUsuarios} licencias:
               </Typography>
 
               {/* Precio SIN Descuento */}
@@ -1402,8 +1408,10 @@ export default function CotizadorPage() {
             {/* Costo total */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="body2"
-                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+                variant="h6" // Make text larger
+                fontWeight="bold"
+                color="#a4478d" // Use the blue color
+                sx={{ mb: 1 }}
               >
                 Costo total:
               </Typography>
@@ -1470,9 +1478,9 @@ export default function CotizadorPage() {
             }}
           >
             <Typography
-              variant="h6"
+              variant="h5" // Make text larger
               fontWeight="bold"
-              color="text.primary"
+              color="#007BFF" // Use the blue color
               sx={{ mb: 2 }}
             >
               Resumen
@@ -1488,8 +1496,10 @@ export default function CotizadorPage() {
             {/* Costo de implementación */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="body2"
-                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+                variant="h6" // Make text larger
+                fontWeight="bold"
+                color="#007BFF" // Use the blue color
+                sx={{ mb: 1 }}
               >
                 Costo de implementación:
               </Typography>
@@ -1511,10 +1521,12 @@ export default function CotizadorPage() {
             {/* Costo anual de licencias */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="body3"
-                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+                variant="h6"
+                fontWeight="bold"
+                color="#007BFF"
+                sx={{ mb: 1 }}
               >
-                Costo anual de licencias:
+                Costo anual de {numUsuarios} licencias:
               </Typography>
 
               {/* Precio SIN Descuento */}
@@ -1539,8 +1551,10 @@ export default function CotizadorPage() {
             {/* Costo total */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="body2"
-                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+                variant="h6" // Make text larger
+                fontWeight="bold"
+                color="#007BFF" // Use the blue color
+                sx={{ mb: 1 }}
               >
                 Costo total:
               </Typography>
