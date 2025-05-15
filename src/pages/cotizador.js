@@ -130,6 +130,7 @@ export default function CotizadorPage() {
   const [orderRange, setOrderRange] = useState(orderRanges[0].value);
   const [multimoneda, setMultimoneda] = useState("no");
   const [hosteo, setHosteo] = useState("Odoo Online");
+  const [operaciones, setOperaciones] = useState("no");
   const [fechaInicio, setFechaInicio] = useState("Aún no tengo claro");
 
   // NUEVOS estados para Odoo.sh
@@ -215,7 +216,7 @@ export default function CotizadorPage() {
 
     // Costo anual de licencias + hosteo
     const costPerUserYear = 4080;
-    const firstYearDiscount = 0.1; // 10%
+    const firstYearDiscount = 0.19; // 19 de descuento en el primer año con odoo
 
     const costoLicenciasSinDesc = safeNumUsuarios * costPerUserYear;
     const costoLicenciasPrimerAnio =
@@ -919,7 +920,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 2 }}
                   >
-                    Selecciona los módulos necesarios
+                    Selecciona los módulos que deseas automatizar en tu negocio
                   </Typography>
 
                   <Grid container spacing={4}>
@@ -1074,7 +1075,7 @@ export default function CotizadorPage() {
                   />
                 </Box>
 
-                {/* 3. Días hasta la entrega */}
+                {/* 3. Días hasta la entrega
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -1091,9 +1092,9 @@ export default function CotizadorPage() {
                     value={urgenciaDias}
                     onChange={(e) => setUrgenciaDias(e.target.value)}
                   />
-                </Box>
+                </Box> */}
 
-                {/* 4. Importación de datos */}
+                {/*Operaciones*/}
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -1101,15 +1102,15 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    ¿Se trasladan saldos iniciales en una nueva base de datos?
+                    ¿La empresa ya tiene operaciones?
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
-                      value={importacionDatos}
-                      onChange={(e) => setImportacionDatos(e.target.value)}
+                      value={operaciones}
+                      onChange={(e) => setOperaciones(e.target.value)}
                     >
                       <FormControlLabel
-                        value="sí"
+                        value="si"
                         control={<Radio color="primary" />}
                         label="Sí"
                       />
@@ -1119,37 +1120,45 @@ export default function CotizadorPage() {
                         label="No"
                       />
                     </RadioGroup>
+
+                    {operaciones === "si" && (
+                      <Box sx={{ mb: 3 }}>
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight="bold"
+                          color="text.primary"
+                          sx={{ mb: 1 }}
+                        >
+                          ¿Se trasladan saldos iniciales en una nueva base de
+                          datos?
+                        </Typography>
+                        <FormControl component="fieldset" fullWidth>
+                          <RadioGroup
+                            value={importacionDatos}
+                            onChange={(e) =>
+                              setImportacionDatos(e.target.value)
+                            }
+                          >
+                            <FormControlLabel
+                              value="sí"
+                              control={<Radio color="primary" />}
+                              label="Sí"
+                            />
+                            <FormControlLabel
+                              value="no"
+                              control={<Radio color="primary" />}
+                              label="No"
+                            />
+                          </RadioGroup>
+                        </FormControl>
+                      </Box>
+                    )}
                   </FormControl>
                 </Box>
+
+                {operaciones === "si" && <></>}
 
                 {/* 5. Integraciones */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="text.primary"
-                    sx={{ mb: 1 }}
-                  >
-                    ¿Requiere integraciones/desarrollos?
-                  </Typography>
-                  <FormControl component="fieldset" fullWidth>
-                    <RadioGroup
-                      value={integraciones}
-                      onChange={(e) => setIntegraciones(e.target.value)}
-                    >
-                      <FormControlLabel
-                        value="sí"
-                        control={<Radio color="primary" />}
-                        label="Sí"
-                      />
-                      <FormControlLabel
-                        value="no"
-                        control={<Radio color="primary" />}
-                        label="No"
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                </Box>
 
                 {/* cuentas contables*/}
                 <Box sx={{ mb: 3 }}>
@@ -1181,7 +1190,7 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
-                {/* 6. Personalizaciones */}
+                {/* 6. Personalizaciones
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -1208,7 +1217,7 @@ export default function CotizadorPage() {
                       />
                     </RadioGroup>
                   </FormControl>
-                </Box>
+                </Box> */}
 
                 {/* 7. Reportes especializados */}
                 <Box sx={{ mb: 3 }}>
@@ -1247,7 +1256,8 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    ¿La implementación será multimoneda?
+                    ¿Su negocio hace operaciones en otras monedas adicionales a
+                    pesos mexicanos?
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
