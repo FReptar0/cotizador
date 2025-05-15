@@ -642,9 +642,9 @@ export default function CotizadorPage() {
                         Odoo Online (versión estándar, limitada a módulos
                         oficiales)
                       </MenuItem>
-                      <MenuItem value="Odoo.sh">
+                      {/* <MenuItem value="Odoo.sh">
                         Odoo.sh (flexible, personalizable, en la nube)
-                      </MenuItem>
+                      </MenuItem> */}
                       {/* <MenuItem value="On-Premise">
                         On-Premise (en servidores propios o de terceros)
                       </MenuItem> */}
