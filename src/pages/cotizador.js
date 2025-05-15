@@ -215,7 +215,7 @@ export default function CotizadorPage() {
 
     // Costo anual de licencias + hosteo
     const costPerUserYear = 4080;
-    const firstYearDiscount = 0.1; // 10%
+    const firstYearDiscount = 0.19; // 19 de descuento en el primer año con odoo
 
     const costoLicenciasSinDesc = safeNumUsuarios * costPerUserYear;
     const costoLicenciasPrimerAnio =
@@ -919,7 +919,7 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 2 }}
                   >
-                    Selecciona los módulos necesarios
+                    Selecciona los módulos que deseas automatizar en tu negocio
                   </Typography>
 
                   <Grid container spacing={4}>
@@ -1074,7 +1074,7 @@ export default function CotizadorPage() {
                   />
                 </Box>
 
-                {/* 3. Días hasta la entrega */}
+                {/* 3. Días hasta la entrega
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -1091,8 +1091,36 @@ export default function CotizadorPage() {
                     value={urgenciaDias}
                     onChange={(e) => setUrgenciaDias(e.target.value)}
                   />
-                </Box>
+                </Box> */}
 
+                {/*Operaciones*/}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    ¿La empresa ya tiene operaciones?
+                  </Typography>
+                  <FormControl component="fieldset" fullWidth>
+                    <RadioGroup
+                      value={importacionDatos}
+                      onChange={(e) => setImportacionDatos(e.target.value)}
+                    >
+                      <FormControlLabel
+                        value="sí"
+                        control={<Radio color="primary" />}
+                        label="Sí"
+                      />
+                      <FormControlLabel
+                        value="no"
+                        control={<Radio color="primary" />}
+                        label="No"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </Box>
                 {/* 4. Importación de datos */}
                 <Box sx={{ mb: 3 }}>
                   <Typography
@@ -1130,7 +1158,8 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    ¿Requiere integraciones/desarrollos?
+                    ¿Es necesario que odoo se integre con alguna plataforma con
+                    la que esté trabajando actualmente?
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
@@ -1181,7 +1210,7 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
 
-                {/* 6. Personalizaciones */}
+                {/* 6. Personalizaciones
                 <Box sx={{ mb: 3 }}>
                   <Typography
                     variant="subtitle1"
@@ -1208,7 +1237,7 @@ export default function CotizadorPage() {
                       />
                     </RadioGroup>
                   </FormControl>
-                </Box>
+                </Box> */}
 
                 {/* 7. Reportes especializados */}
                 <Box sx={{ mb: 3 }}>
@@ -1247,7 +1276,8 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    ¿La implementación será multimoneda?
+                    ¿Su negocio hace operaciones en otras monedas adicionales a
+                    pesos mexicanos?
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
