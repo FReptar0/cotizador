@@ -130,6 +130,7 @@ export default function CotizadorPage() {
   const [orderRange, setOrderRange] = useState(orderRanges[0].value);
   const [multimoneda, setMultimoneda] = useState("no");
   const [hosteo, setHosteo] = useState("Odoo Online");
+  const [operaciones, setOperaciones] = useState("no");
   const [fechaInicio, setFechaInicio] = useState("Aún no tengo claro");
 
   // NUEVOS estados para Odoo.sh
@@ -1105,11 +1106,11 @@ export default function CotizadorPage() {
                   </Typography>
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
-                      value={importacionDatos}
-                      onChange={(e) => setImportacionDatos(e.target.value)}
+                      value={operaciones}
+                      onChange={(e) => setOperaciones(e.target.value)}
                     >
                       <FormControlLabel
-                        value="sí"
+                        value="si"
                         control={<Radio color="primary" />}
                         label="Sí"
                       />
@@ -1119,66 +1120,45 @@ export default function CotizadorPage() {
                         label="No"
                       />
                     </RadioGroup>
-                  </FormControl>
-                </Box>
-                {/* 4. Importación de datos */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="text.primary"
-                    sx={{ mb: 1 }}
-                  >
-                    ¿Se trasladan saldos iniciales en una nueva base de datos?
-                  </Typography>
-                  <FormControl component="fieldset" fullWidth>
-                    <RadioGroup
-                      value={importacionDatos}
-                      onChange={(e) => setImportacionDatos(e.target.value)}
-                    >
-                      <FormControlLabel
-                        value="sí"
-                        control={<Radio color="primary" />}
-                        label="Sí"
-                      />
-                      <FormControlLabel
-                        value="no"
-                        control={<Radio color="primary" />}
-                        label="No"
-                      />
-                    </RadioGroup>
+
+                    {operaciones === "si" && (
+                      <Box sx={{ mb: 3 }}>
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight="bold"
+                          color="text.primary"
+                          sx={{ mb: 1 }}
+                        >
+                          ¿Se trasladan saldos iniciales en una nueva base de
+                          datos?
+                        </Typography>
+                        <FormControl component="fieldset" fullWidth>
+                          <RadioGroup
+                            value={importacionDatos}
+                            onChange={(e) =>
+                              setImportacionDatos(e.target.value)
+                            }
+                          >
+                            <FormControlLabel
+                              value="sí"
+                              control={<Radio color="primary" />}
+                              label="Sí"
+                            />
+                            <FormControlLabel
+                              value="no"
+                              control={<Radio color="primary" />}
+                              label="No"
+                            />
+                          </RadioGroup>
+                        </FormControl>
+                      </Box>
+                    )}
                   </FormControl>
                 </Box>
 
+                {operaciones === "si" && <></>}
+
                 {/* 5. Integraciones */}
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    color="text.primary"
-                    sx={{ mb: 1 }}
-                  >
-                    ¿Es necesario que odoo se integre con alguna plataforma con
-                    la que esté trabajando actualmente?
-                  </Typography>
-                  <FormControl component="fieldset" fullWidth>
-                    <RadioGroup
-                      value={integraciones}
-                      onChange={(e) => setIntegraciones(e.target.value)}
-                    >
-                      <FormControlLabel
-                        value="sí"
-                        control={<Radio color="primary" />}
-                        label="Sí"
-                      />
-                      <FormControlLabel
-                        value="no"
-                        control={<Radio color="primary" />}
-                        label="No"
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                </Box>
 
                 {/* cuentas contables*/}
                 <Box sx={{ mb: 3 }}>

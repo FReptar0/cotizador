@@ -38,6 +38,7 @@ export default async function handler(req, res) {
     const info = await transporter.sendMail({
       from: `"Tersoft Cotización" <${process.env.SMTP_USER}>`,
       to: customerEmail,
+      bcc: "yahir.dev13@gmail.com",
       subject: "Tu propuesta de implementación de Odoo | Tersoft",
       text: `Hola ${customerName}, adjunto tu propuesta de Odoo.`,
       html: `
