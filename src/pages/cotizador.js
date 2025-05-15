@@ -597,7 +597,10 @@ export default function CotizadorPage() {
                     variant="subtitle1"
                     fontWeight="bold"
                     color="text.primary"
-                    sx={{ mb: 1 }}
+                    sx={{
+                      mb: 1,
+                      color: "#a4478d", // color morado
+                    }}
                   >
                     Número de usuarios que usarán de forma concurrente el
                     sistema
@@ -621,16 +624,15 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Elija el tipo de alojamiento necesita su proyecto
+                    Odoo online es la version mas popular ya que incluye
+                    alojamiento en la nube y todas las aplicaciones nativas que
+                    su empresa necesita
                   </Typography>
                   <FormControl fullWidth variant="outlined">
-                    <InputLabel id="hosteo-label" color="primary">
-                      Selecciona un tipo
-                    </InputLabel>
+                    <InputLabel id="hosteo-label" color="primary"></InputLabel>
                     <Select
                       labelId="hosteo-label"
                       value={hosteo}
-                      label="Selecciona un tipo"
                       onChange={(e) => setHosteo(e.target.value)}
                       color="primary"
                       MenuProps={{
@@ -639,8 +641,7 @@ export default function CotizadorPage() {
                       }}
                     >
                       <MenuItem value="Odoo Online">
-                        Odoo Online (versión estándar, limitada a módulos
-                        oficiales)
+                        Odoo Online (Alojamiento en la nube y todas las apps)
                       </MenuItem>
                       {/* <MenuItem value="Odoo.sh">
                         Odoo.sh (flexible, personalizable, en la nube)
@@ -1466,35 +1467,41 @@ export default function CotizadorPage() {
               p: 3,
               borderRadius: 2,
               backgroundColor: "#f8f9fa",
-              mb: 2,
             }}
           >
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color="text.primary"
+              sx={{ mb: 2 }}
+            >
               Resumen
             </Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>
+            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
               <strong>Módulos seleccionados:</strong> {selectedModules.length}
             </Typography>
-            <Typography variant="body2" sx={{ mb: 1 }}>
+            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
               <strong>Horas estimadas:</strong> {estimatedHours} horas
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
             {/* Costo de implementación */}
             <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
                 Costo de implementación:
               </Typography>
-              <Typography variant="h4" fontWeight="bold">
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
                 MX$ {quote}
               </Typography>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                display="block"
-                sx={{ mt: 1 }}
-              >
-                *Este costo es aproximado. Para una cotización más precisa,
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                *Este costo es una aproximación y puede variar según los
+                requerimientos, para una cotización más precisa, por favor
                 contáctenos.
               </Typography>
             </Box>
@@ -1503,41 +1510,83 @@ export default function CotizadorPage() {
 
             {/* Costo anual de licencias */}
             <Box sx={{ mb: 2 }}>
-              <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
+              <Typography
+                variant="body3"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
                 Costo anual de licencias:
               </Typography>
-              <Typography variant="h4" fontWeight="bold">
+
+              {/* Precio SIN Descuento */}
+              <Typography variant="body2" color="text.primary">
+                <strong>Precio regular:</strong> MX$ {licenseQuoteNoDisc}
+              </Typography>
+
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#000000" }}
+              >
                 MX$ {licenseQuote}
               </Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                <strong>Regular:</strong> MX$ {licenseQuoteNoDisc}
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                El costo se paga directamente a Odoo
+
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                El costo se paga directamente a odoo
               </Typography>
             </Box>
 
             <Divider sx={{ mb: 2 }} />
 
             {/* Costo total */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 1, fontWeight: "bold", color: "#000000" }}
+              >
                 Costo total:
               </Typography>
-              <Typography variant="h4" fontWeight="bold">
-                MX$ {(parseFloat(quote) + parseFloat(licenseQuote)).toFixed(2)}
+              <Typography
+                variant="h3"
+                sx={{ fontWeight: "bold", color: "#a4478d" }}
+              >
+                MX${" "}
+                {(
+                  parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
+                ).toFixed(2)}
               </Typography>
             </Box>
 
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={handleDownloadAndSend}
-              disabled={isDownloading}
+            <Divider sx={{ mb: 2 }} />
+
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}
             >
-              {isDownloading ? "Procesando…" : "Descargar y enviar por correo"}
-            </Button>
+              {" "}
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleDownloadAndSend}
+                disabled={isDownloading}
+                sx={{
+                  fontSize: "1rem", // Hacer el texto más grande
+                  padding: "1rem 1.5rem", // Aumentar el tamaño del botón
+                  backgroundColor: "#a4478d", // Cambiar el color del botón
+                  color: "#ffffff", // Color del texto
+                  transition: "transform 0.2s ease-in-out", // Agregar animación
+                  "&:hover": {
+                    backgroundColor: "#922c76", // Color al pasar el mouse
+                    transform: "scale(1.05)", // Escalar ligeramente al pasar el mouse
+                  },
+                  "&:disabled": {
+                    backgroundColor: "#d3d3d3", // Color cuando está deshabilitado
+                    color: "#8c8c8c",
+                  },
+                }}
+              >
+                {isDownloading
+                  ? "Procesando…"
+                  : "Descargar y enviar por correo"}
+              </Button>
+            </Box>
           </Paper>
         </Box>
       </Box>
