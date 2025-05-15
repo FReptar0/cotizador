@@ -1407,10 +1407,6 @@ export default function CotizadorPage() {
               >
                 MX$ {formatPrice(licenseQuote)}
               </Typography>
-
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                El costo se paga directamente a odoo
-              </Typography>
             </Box>
 
             <Divider sx={{ mb: 2 }} />
