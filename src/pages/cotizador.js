@@ -1159,6 +1159,34 @@ export default function CotizadorPage() {
                 {operaciones === "si" && <></>}
 
                 {/* 5. Integraciones */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    ¿Es necesario que odoo se integre con alguna plataforma con
+                    la que esté trabajando actualmente?
+                  </Typography>
+                  <FormControl component="fieldset" fullWidth>
+                    <RadioGroup
+                      value={integraciones}
+                      onChange={(e) => setIntegraciones(e.target.value)}
+                    >
+                      <FormControlLabel
+                        value="sí"
+                        control={<Radio color="primary" />}
+                        label="Sí"
+                      />
+                      <FormControlLabel
+                        value="no"
+                        control={<Radio color="primary" />}
+                        label="No"
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </Box>
 
                 {/* cuentas contables*/}
                 <Box sx={{ mb: 3 }}>
