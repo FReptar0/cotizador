@@ -65,7 +65,7 @@ export default function LandingLoginPage() {
             textAlign: "center",
             backgroundImage: "url('/odoo-hero.jpeg')",
             backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundPosition: "center 20%",
             color: "#fff",
             px: 2,
           }}
