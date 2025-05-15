@@ -138,7 +138,7 @@ export default function CotizadorPage() {
   const [testEnvironments, setTestEnvironments] = useState(1);
 
   // Número de usuarios (licencias)
-  const [numUsuarios, setNumUsuarios] = useState(0);
+  const [numUsuarios, setNumUsuarios] = useState(5);
 
   // Archivo de transcripción
   const [transcriptionFile, setTranscriptionFile] = useState(null);
@@ -770,13 +770,12 @@ export default function CotizadorPage() {
                       value={implementationType}
                       onChange={(e) => setImplementationType(e.target.value)}
                     >
-                      {/* Opción 1: Cliente */}
                       <FormControlLabel
-                        value="cliente"
+                        value="completa"
                         control={<Radio color="primary" />}
                         label={
                           <Box sx={{ display: "flex", alignItems: "center" }}>
-                            <span>Sí, contamos con equipo técnico</span>
+                            <span>No, requerimos implementación completa</span>
                             <Tooltip
                               arrow
                               placement="right"
@@ -786,31 +785,31 @@ export default function CotizadorPage() {
                                     variant="subtitle2"
                                     sx={{ mb: 1, fontWeight: "bold" }}
                                   >
-                                    Tu equipo domina Python, PostgreSQL y
-                                    servidores Linux
+                                    Delegas el 100 % a TerSoft
                                   </Typography>
-                                  <List sx={{ pl: 1, m: 0 }}>
+                                  <List sx={{ pl: 2, m: 0 }}>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
-                                      Licencias oficiales y guía de mejores
-                                      prácticas
+                                      Levantamiento de procesos y
+                                      parametrización
                                     </ListItem>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
-                                      Reunión de arranque + soporte de 2º nivel
+                                      Desarrollos y plan de gestión del cambio
                                     </ListItem>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
-                                      No incluye parametrización ni capacitación
-                                      extensa
+                                      Capacitación a usuarios y soporte 1º-2º
+                                      nivel
                                     </ListItem>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
-                                      Perfecto para empresas “DIY”
+                                      Tiempo y costo garantizados bajo
+                                      metodología Cero Riesgos
                                     </ListItem>
                                   </List>
                                 </Box>
@@ -869,13 +868,13 @@ export default function CotizadorPage() {
                         }
                       />
 
-                      {/* Opción 3: Completa */}
+                      {/* Opción 1: Cliente */}
                       <FormControlLabel
-                        value="completa"
+                        value="cliente"
                         control={<Radio color="primary" />}
                         label={
                           <Box sx={{ display: "flex", alignItems: "center" }}>
-                            <span>No, requerimos implementación completa</span>
+                            <span>Sí, contamos con equipo técnico</span>
                             <Tooltip
                               arrow
                               placement="right"
@@ -885,31 +884,31 @@ export default function CotizadorPage() {
                                     variant="subtitle2"
                                     sx={{ mb: 1, fontWeight: "bold" }}
                                   >
-                                    Delegas el 100 % a TerSoft
+                                    Tu equipo domina Python, PostgreSQL y
+                                    servidores Linux
                                   </Typography>
-                                  <List sx={{ pl: 2, m: 0 }}>
+                                  <List sx={{ pl: 1, m: 0 }}>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
-                                      Levantamiento de procesos y
-                                      parametrización
+                                      Licencias oficiales y guía de mejores
+                                      prácticas
                                     </ListItem>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
-                                      Desarrollos y plan de gestión del cambio
+                                      Reunión de arranque + soporte de 2º nivel
                                     </ListItem>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
-                                      Capacitación a usuarios y soporte 1º-2º
-                                      nivel
+                                      No incluye parametrización ni capacitación
+                                      extensa
                                     </ListItem>
                                     <ListItem
                                       sx={{ display: "list-item", py: 0 }}
                                     >
-                                      Tiempo y costo garantizados bajo
-                                      metodología Cero Riesgos
+                                      Perfecto para empresas “DIY”
                                     </ListItem>
                                   </List>
                                 </Box>
@@ -920,6 +919,8 @@ export default function CotizadorPage() {
                           </Box>
                         }
                       />
+
+                      {/* Opción 3: Completa */}
                     </RadioGroup>
                   </FormControl>
                 </Box>
