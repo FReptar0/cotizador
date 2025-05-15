@@ -216,7 +216,7 @@ export default function CotizadorPage() {
 
     // Costo anual de licencias + hosteo
     const costPerUserYear = 4080;
-    const firstYearDiscount = 0.19; // 19 de descuento en el primer año con odoo
+    const firstYearDiscount = 0.194117; // 19 de descuento en el primer año con odoo
 
     const costoLicenciasSinDesc = safeNumUsuarios * costPerUserYear;
     const costoLicenciasPrimerAnio =
