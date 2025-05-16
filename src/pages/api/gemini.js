@@ -11,6 +11,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 function renderLineWithBold(doc, line, marginX, posY) {
   let x = marginX;
   const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  fjp;
   for (const part of parts) {
     if (part.startsWith("**") && part.endsWith("**")) {
       const text = part.slice(2, -2);
@@ -61,7 +62,7 @@ export default async function handler(req, res) {
 
 
 
-Instrucciones: genera únicamente las siguientes secciones numeradas del 1 al 9, sin agregar nada más:
+Instrucciones: genera únicamente las siguientes secciones numeradas del 1 al 10, sin agregar nada más:
 
 Cliente: ${customerName}
 Empresa: ${customerCompany}
@@ -126,7 +127,15 @@ Fecha: ${today}
 9. Conclusión
    -  escribir "La implementacion de odoo proporcionara a ${customerCompany} una plataforma integrada y eficiente para gestionar sus operaciones. Con la implementación de Odoo, ${customerCompany} podrá optimizar sus procesos, mejorar la colaboración entre departamentos y tomar decisiones informadas basadas en datos en tiempo real. Estamos comprometidos a brindar un servicio de alta calidad y a garantizar el éxito de esta implementación."
 
+10. Beneficios adicionales
+    • Sin anticipo para la consultoria, usted va a pagar hasta que su proyecto este funcionando correctamente
+    • 15 dias de soporte post-implementación
+    • TERSOFT esta compormetido con el exito del proyecto y garantizara una implementacion efectiva, con soporte continuo y adaptacion a las necesidades especificas de ${customerCompany}
+    • A la espera de su aprobacion para proceder con la implementacion de Odoo en su empresa.
 
+  ATENTAMENTE
+  TERSOFT
+    
 Datos para la sección 8:
 - Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
 - Implementación: MX$ ${quote} + IVA (con tersoft)
@@ -161,12 +170,6 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
 
     // 7b) Insertar encabezado a 100% de ancho, sin márgenes superiores
     try {
-      // ruta absoluta a tu carpeta public
-
-      // Cambiamos la ruta a la carpeta public
-      // para que funcione en producción
-      // y en local
-
       const headerPath = path.join(
         process.cwd(),
         "public",
@@ -174,7 +177,6 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
       );
       const headerBuffer = fs.readFileSync(headerPath);
       const headerBase64 = headerBuffer.toString("base64");
-      // calcula altura manteniendo proporción (opcional)
       const imgProps = doc.getImageProperties(
         `data:image/jpeg;base64,${headerBase64}`
       );
@@ -188,10 +190,31 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
         headerHeight
       );
       // desplazamos Y tras el encabezado
+      const spacingAfterHeader = 10;
+      y = headerHeight + spacingAfterHeader;
 
-      y = headerHeight + marginY;
+      // --- NUEVO BLOQUE: insertar foto-email.jpeg justo después ---
+      const fotoPath = path.join(process.cwd(), "public", "foto-email.jpeg");
+      const fotoBuffer = fs.readFileSync(fotoPath);
+      const fotoBase64 = fotoBuffer.toString("base64");
+      const fotoProps = doc.getImageProperties(
+        `data:image/jpeg;base64,${fotoBase64}`
+      );
+      // calculamos altura para que ocupe todo el ancho de la página
+      const fotoHeight = (fotoProps.height * pageWidth) / fotoProps.width;
+      doc.addImage(
+        `data:image/jpeg;base64,${fotoBase64}`,
+        "JPEG",
+        0,
+        y,
+        pageWidth,
+        fotoHeight
+      );
+      // movemos el cursor por debajo de la foto
+      y += fotoHeight + marginY;
+      // --- FIN BLOQUE ---
     } catch (err) {
-      console.error("Error cargando encabezado desde disco:", err);
+      console.error("Error cargando encabezados desde disco:", err);
       y = marginY;
     }
 
