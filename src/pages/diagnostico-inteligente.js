@@ -416,8 +416,8 @@ export default function DiagnosticoInteligentePage() {
                 fullWidth
                 multiline
                 minRows={2}
-                value={loading}
-                onChange={e => setLoading(e.target.value)}
+                value={equipoTI}
+                onChange={e => setEquipoTI(e.target.value)}
                 placeholder="Ejemplo: 1 persona de TI interna, soporte externo esperado 24/7 durante el primer año."
               />
             </Box>
