@@ -16,6 +16,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 const pages = [
   { label: "Cotizador", href: "/cotizador" },
+  { label: "Diagnóstico inteligente", href: "/diagnostico-inteligente" },
   {
     label: "Agende una cita",
     action: () =>

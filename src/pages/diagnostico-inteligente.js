@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 import {
   Container,
   Box,
@@ -25,6 +26,7 @@ const theme = createTheme({
 
 export default function DiagnosticoInteligentePage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [authChecked, setAuthChecked] = useState(false);
 
   const [empresa, setEmpresa] = useState("");
@@ -43,13 +45,12 @@ export default function DiagnosticoInteligentePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) {
-      router.replace("/login");
-    } else {
+    if (status === "authenticated") {
       setAuthChecked(true);
+    } else if (status === "unauthenticated") {
+      router.replace("/login");
     }
-  }, [router]);
+  }, [status, router]);
 
   const handleGenerarDiagnostico = () => {
     setLoading(true);
@@ -131,7 +132,12 @@ export default function DiagnosticoInteligentePage() {
     doc.save("propuesta_odoo.pdf");
   };
 
-  if (!authChecked) return null;
+  // Redirige si no está autenticado
+  if (status === "loading") return null;
+  if (!session) {
+    if (typeof window !== "undefined") router.replace("/login");
+    return null;
+  }
 
   return (
     <ThemeProvider theme={theme}>
