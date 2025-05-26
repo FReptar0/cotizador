@@ -54,7 +54,15 @@ export default function ResponsiveAppBar() {
             component="img"
             src="/Tersoft.webp"
             alt="Tersoft Logo"
-            sx={{ display: { xs: "none", md: "flex" }, height: 40, mr: 2 }}
+            sx={{
+              display: { xs: "none", md: "flex" },
+              height: 40,
+              mr: 2,
+              cursor: "pointer",
+            }}
+            onClick={() =>
+              window.open("https://www.tersoft.mx/que-es-odoo", "_blank")
+            }
           />
           <Typography
             variant="h6"
