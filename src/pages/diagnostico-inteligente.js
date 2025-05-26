@@ -419,8 +419,8 @@ export default function DiagnosticoInteligentePage() {
                 fullWidth
                 multiline
                 minRows={2}
-                value={equipoTI}
-                onChange={(e) => setEquipoTI(e.target.value)}
+                value={productos}
+                onChange={(e) => setProductos(e.target.value)}
                 placeholder="Ejemplo: Importar clientes y facturas de los últimos 3 años."
               />
             </Box>
