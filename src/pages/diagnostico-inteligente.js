@@ -204,6 +204,9 @@ export default function DiagnosticoInteligentePage() {
               Datos del cliente
             </Typography>
             <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                Nombre completo
+              </Typography>
               <TextField
                 label="Nombre completo"
                 variant="outlined"
@@ -212,9 +215,12 @@ export default function DiagnosticoInteligentePage() {
                 value={nombreCliente}
                 onChange={e => setNombreCliente(e.target.value)}
                 error={!!errores.nombreCliente}
-                helperText={errores.nombreCliente || "Ejemplo: Juan Pérez"}
+                helperText={errores.nombreCliente}
                 sx={{ mb: 2 }}
               />
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                Nombre de la empresa
+              </Typography>
               <TextField
                 label="Nombre de la empresa"
                 variant="outlined"
@@ -223,9 +229,12 @@ export default function DiagnosticoInteligentePage() {
                 value={nombreEmpresa}
                 onChange={e => setNombreEmpresa(e.target.value)}
                 error={!!errores.nombreEmpresa}
-                helperText={errores.nombreEmpresa || "Ejemplo: Soluciones XYZ S.A. de C.V."}
+                helperText={errores.nombreEmpresa}
                 sx={{ mb: 2 }}
               />
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                Correo electrónico
+              </Typography>
               <TextField
                 label="Correo electrónico"
                 variant="outlined"
@@ -235,9 +244,12 @@ export default function DiagnosticoInteligentePage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 error={!!errores.email}
-                helperText={errores.email || "Ejemplo: juan.perez@empresa.com"}
+                helperText={errores.email}
                 sx={{ mb: 2 }}
               />
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                Número de teléfono
+              </Typography>
               <TextField
                 label="Número de teléfono"
                 variant="outlined"
@@ -247,7 +259,7 @@ export default function DiagnosticoInteligentePage() {
                 value={telefono}
                 onChange={e => setTelefono(e.target.value)}
                 error={!!errores.telefono}
-                helperText={errores.telefono || "Ejemplo: 5551234567"}
+                helperText={errores.telefono}
                 sx={{ mb: 2 }}
               />
             </Box>
