@@ -260,30 +260,30 @@ export default function DiagnosticoInteligentePage() {
             </Typography>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                1. Sector e industria
+                ¿A qué sector o industria pertenece su empresa?
               </Typography>
               <TextField
                 fullWidth
                 value={giro}
                 onChange={e => setGiro(e.target.value)}
-                placeholder="¿A qué sector o industria pertenece su empresa? Ejemplo: Manufactura, Retail, Salud, etc."
+                placeholder="Ejemplo: Manufactura, Retail, Salud, etc."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                2. Tamaño de la organización
+                ¿Cuántos empleados tiene actualmente su empresa?
               </Typography>
               <TextField
                 fullWidth
                 type="number"
                 value={empleados}
                 onChange={e => setEmpleados(e.target.value)}
-                placeholder="¿Cuántos empleados tiene actualmente su empresa? Ejemplo: 50 empleados"
+                placeholder="Ejemplo: 50 empleados"
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                3. Procesos críticos y retos
+                ¿Cuáles son sus procesos más críticos (ventas, compras, inventarios, contabilidad, RR. HH., etc.) y qué desafíos enfrentan en cada uno?
               </Typography>
               <TextField
                 fullWidth
@@ -291,12 +291,12 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={procesos}
                 onChange={e => setProcesos(e.target.value)}
-                placeholder="¿Cuáles son sus procesos más críticos (ventas, compras, inventarios, contabilidad, RR. HH., etc.) y qué desafíos enfrentan en cada uno? Ejemplo: Ventas (seguimiento de oportunidades), Inventarios (control de stock), etc."
+                placeholder="Ejemplo: Ventas (seguimiento de oportunidades), Inventarios (control de stock), etc."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                4. Herramientas actuales
+                ¿Qué sistemas o aplicaciones utilizan hoy para gestionar esos procesos?
               </Typography>
               <TextField
                 fullWidth
@@ -304,12 +304,12 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={problemas}
                 onChange={e => setProblemas(e.target.value)}
-                placeholder="¿Qué sistemas o aplicaciones utilizan hoy para gestionar esos procesos? Ejemplo: Excel, SAP, sistemas propios, Quickbooks, etc."
+                placeholder="Ejemplo: Excel, SAP, sistemas propios, Quickbooks, etc."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                5. Módulos prioritarios
+                ¿Qué módulos de Odoo consideran indispensables en una primera etapa?
               </Typography>
               <TextField
                 fullWidth
@@ -317,12 +317,12 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={objetivos}
                 onChange={e => setObjetivos(e.target.value)}
-                placeholder="¿Qué módulos de Odoo consideran indispensables en una primera etapa? Ejemplo: CRM, Ventas, Compras, Inventarios, Proyectos, Contabilidad, Nómina, e-commerce, etc."
+                placeholder="Ejemplo: CRM, Ventas, Compras, Inventarios, Proyectos, Contabilidad, Nómina, e-commerce, etc."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                6. Volumen de usuarios y roles
+                ¿Cuántos usuarios ingresarán al sistema de forma regular y qué perfiles o permisos necesitarán?
               </Typography>
               <TextField
                 fullWidth
@@ -330,23 +330,23 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={clientes}
                 onChange={e => setClientes(e.target.value)}
-                placeholder="¿Cuántos usuarios ingresarán al sistema de forma regular y qué perfiles o permisos necesitarán? Ejemplo: 10 usuarios, 2 administradores, 3 ventas, 5 solo lectura."
+                placeholder="Ejemplo: 10 usuarios, 2 administradores, 3 ventas, 5 solo lectura."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                7. Preferencia de hosting
+                ¿Prefieren un despliegue en la nube (Odoo.sh, AWS, Google Cloud) o en servidores propios (on-premise)?
               </Typography>
               <TextField
                 fullWidth
                 value={productos}
                 onChange={e => setProductos(e.target.value)}
-                placeholder="¿Prefieren un despliegue en la nube (Odoo.sh, AWS, Google Cloud) o en servidores propios (on-premise)? Ejemplo: Odoo.sh, AWS, Google Cloud, on-premise, etc."
+                placeholder="Ejemplo: Odoo.sh, AWS, Google Cloud, on-premise, etc."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                8. Disponibilidad y rendimiento
+                ¿Requieren alta disponibilidad y tolerancia a fallos, o estiman un volumen específico de transacciones por hora o tamaño de base de datos?
               </Typography>
               <TextField
                 fullWidth
@@ -354,12 +354,12 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={ventas}
                 onChange={e => setVentas(e.target.value)}
-                placeholder="¿Requieren alta disponibilidad y tolerancia a fallos, o estiman un volumen específico de transacciones por hora o tamaño de base de datos? Ejemplo: Alta disponibilidad, 100 transacciones/hora, base de datos de 10GB, etc."
+                placeholder="Ejemplo: Alta disponibilidad, 100 transacciones/hora, base de datos de 10GB, etc."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                9. Integraciones externas
+                ¿Qué sistemas externos desean conectar con Odoo y con qué frecuencia deben sincronizarse?
               </Typography>
               <TextField
                 fullWidth
@@ -367,12 +367,12 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={logistica}
                 onChange={e => setLogistica(e.target.value)}
-                placeholder="¿Qué sistemas externos desean conectar con Odoo y con qué frecuencia deben sincronizarse? Ejemplo: Integración con tienda en línea, portal de proveedores, sincronización diaria con CRM previo, etc."
+                placeholder="Ejemplo: Integración con tienda en línea, portal de proveedores, sincronización diaria con CRM previo, etc."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                10. Migración de datos
+                ¿Necesitan importar datos históricos (clientes, productos, facturas, stock), y de qué antigüedad?
               </Typography>
               <TextField
                 fullWidth
@@ -380,12 +380,12 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={equipoTI}
                 onChange={e => setEquipoTI(e.target.value)}
-                placeholder="¿Necesitan importar datos históricos (clientes, productos, facturas, stock), y de qué antigüedad? Ejemplo: Importar clientes y facturas de los últimos 3 años."
+                placeholder="Ejemplo: Importar clientes y facturas de los últimos 3 años."
               />
             </Box>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                11. Personalizaciones y flujos
+                ¿Qué flujos de trabajo o reportes propios de su operación quisieran automatizar o adaptar mediante desarrollos a medida?
               </Typography>
               <TextField
                 fullWidth
@@ -393,12 +393,12 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={resultado}
                 onChange={e => setResultado(e.target.value)}
-                placeholder="¿Qué flujos de trabajo o reportes propios de su operación quisieran automatizar o adaptar mediante desarrollos a medida? Ejemplo: Automatizar aprobación de compras, reporte de ventas personalizado, etc."
+                placeholder="Ejemplo: Automatizar aprobación de compras, reporte de ventas personalizado, etc."
               />
             </Box>
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                12. Soporte y capacidad interna
+                ¿Con qué equipo de TI interno cuentan para la implementación y mantenimiento, y qué nivel de soporte externo esperan tras el lanzamiento?
               </Typography>
               <TextField
                 fullWidth
@@ -406,7 +406,7 @@ export default function DiagnosticoInteligentePage() {
                 minRows={2}
                 value={loading}
                 onChange={e => setLoading(e.target.value)}
-                placeholder="¿Con qué equipo de TI interno cuentan para la implementación y mantenimiento, y qué nivel de soporte externo esperan tras el lanzamiento? Ejemplo: 1 persona de TI interna, soporte externo esperado 24/7 durante el primer año."
+                placeholder="Ejemplo: 1 persona de TI interna, soporte externo esperado 24/7 durante el primer año."
               />
             </Box>
             <Button
