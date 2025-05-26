@@ -10,7 +10,7 @@ const Footer = () => {
         py: 2,
       }}
     >
-      <Typography variant="body2">Tersoft © 2023</Typography>
+      <Typography variant="body2">Tersoft © 2025</Typography>
     </Box>
   );
 };
