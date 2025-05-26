@@ -146,6 +146,15 @@ export default function ResponsiveAppBar() {
                 {page.label}
               </Button>
             ))}
+            <Button
+              key="Diagnóstico Inteligente"
+              onClick={() =>
+                (window.location.href = "/diagnostico-inteligente")
+              }
+              sx={{ color: "white", mx: 1 }}
+            >
+              Diagnóstico Inteligente
+            </Button>
           </Box>
 
           {/* ───────── Avatar / Menú de Usuario ───────── */}
