@@ -1,13 +1,9 @@
-// archivo: pages/api/gemini.js
+// archivo: pages/api/gemini-diagnostico.js
 import fs from "fs";
 import path from "path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-// Cambio: utilizamos fetch en Node.js para cargar imágenes desde /public
-// (en Next.js 13+ fetch es global; si usas versión anterior, instala node-fetch)
 
-//
-// Función auxiliar: dibuja cada línea detectando **texto** y poniéndolo en negrita
-//
+// Función auxiliar para texto con **negritas**
 function renderLineWithBold(doc, line, marginX, posY) {
   let x = marginX;
   const parts = line.split(/(\*\*[^*]+\*\*)/g);
@@ -26,14 +22,13 @@ function renderLineWithBold(doc, line, marginX, posY) {
 }
 
 export default async function handler(req, res) {
-  // 1) Solo aceptamos POST
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Método no permitido" });
   }
 
   try {
-    // 2) Extraemos todos los datos que envía el frontend
+    // 1) Datos del frontend
     const {
       nombreCliente,
       nombreEmpresa,
@@ -51,14 +46,14 @@ export default async function handler(req, res) {
       equipoTI,
     } = req.body;
 
-    // 3) Fecha actual
+    // 2) Fecha actual
     const today = new Date().toLocaleDateString("es-ES", {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
 
-    // 4) Construimos el prompt para Gemini
+    // 3) Prompt para Gemini
     const prompt = `DIAGNÓSTICO INTELIGENTE DE IMPLEMENTACIÓN ODOO
 Cliente: ${nombreCliente}
 Empresa: ${nombreEmpresa}
@@ -102,28 +97,33 @@ ${objetivos}
 
 Redacta cada sección con subtítulo y texto claro, usando viñetas donde sea útil. No inventes datos de contacto. No repitas información. No agregues secciones extra. No uses lenguaje genérico, personaliza según los datos recibidos.`;
 
-    // 5) Inicializamos Gemini y pedimos la generación
+    // 4) Generación con Gemini
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
     const text = (await result.response).text();
 
-    // 6) Creamos el PDF con jsPDF
+    // 5) Crear PDF con jsPDF
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "pt", format: "letter" });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
 
-    // Márgenes y configuración base
+    // — Metadatos PDF
+    doc.setProperties({
+      title: "Diagnóstico Inteligente Odoo",
+      author: "TERSOFT",
+    });
+
+    // — Constantes de diseño
+    const primaryColor = "#005f8d";
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
-    const marginX = 60;
+    const marginX = 50;
     const marginY = 60;
     const usableWidth = pageWidth - marginX * 2;
-    const lineHeight = 18;
+    const lineHeight = 20;
     let y = marginY;
 
-    // Encabezado (opcional: puedes agregar logo aquí)
+    // — Encabezado original con imagen (si existe)
     try {
       const headerPath = path.join(
         process.cwd(),
@@ -146,10 +146,15 @@ Redacta cada sección con subtítulo y texto claro, usando viñetas donde sea ú
       );
       y = headerHeight + 10;
     } catch (err) {
+      // Si no encuentra la imagen, usar margen por defecto
       y = marginY;
     }
 
-    // Escribimos cada línea, aplicando negritas en títulos
+    // — Cuerpo del documento
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.setTextColor("#333333");
+
     const lines = text.split("\n");
     for (const rawLine of lines) {
       const line = rawLine.trim();
@@ -157,39 +162,76 @@ Redacta cada sección con subtítulo y texto claro, usando viñetas donde sea ú
         y += lineHeight;
         continue;
       }
+
+      // Títulos de sección (número al inicio)
+      const isSectionTitle = /^\d+\./.test(line);
+      if (isSectionTitle) {
+        y += 10;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.setTextColor(primaryColor);
+      } else {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.setTextColor("#333333");
+      }
+
       const wrapped = doc.splitTextToSize(line, usableWidth);
       for (const chunk of wrapped) {
         if (y > pageHeight - marginY) {
           doc.addPage();
           y = marginY;
         }
-        if (/^\d+\./.test(chunk) || /^- /.test(chunk)) {
-          doc.setFont("helvetica", "bold");
+        // Negritas inline
+        if (/\*\*[^*]+\*\*/.test(chunk)) {
+          renderLineWithBold(doc, chunk, marginX, y);
         } else {
-          doc.setFont("helvetica", "normal");
+          doc.text(chunk, marginX, y, {
+            maxWidth: usableWidth,
+            align: "justify",
+          });
         }
-        doc.text(chunk, marginX, y, {
-          maxWidth: usableWidth,
-          align: "justify",
-        });
         y += lineHeight;
       }
     }
 
-    // Footer
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    const footerText =
-      "Este diagnóstico es preliminar. Para una propuesta formal, agenda una consultoría personalizada en https://calendly.com/tersoft/primera-sesion-para-conocer-necesidades-de-su-empresa";
-    const footerLines = doc.splitTextToSize(footerText, usableWidth);
-    doc.text(footerLines, marginX, pageHeight - marginY + 20);
+    // — Separador antes del pie
+    doc.setDrawColor(primaryColor);
+    doc.setLineWidth(0.5);
+    doc.line(
+      marginX,
+      pageHeight - marginY + 10,
+      pageWidth - marginX,
+      pageHeight - marginY + 10
+    );
 
-    // 7) Devolvemos el PDF al navegador
+    // — Pie de página con mensaje y numeración
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor("#555555");
+      doc.text(
+        "Diagnóstico preliminar • Para propuesta formal, agenda en calendly.com/tersoft",
+        marginX,
+        pageHeight - marginY + 30,
+        { maxWidth: usableWidth }
+      );
+      doc.text(
+        `Página ${i} / ${totalPages}`,
+        pageWidth - marginX,
+        pageHeight - marginY + 30,
+        { align: "right" }
+      );
+    }
+
+    // — Envío del PDF
     const pdfArray = doc.output("arraybuffer");
     res.setHeader("Content-Type", "application/pdf");
     res.send(Buffer.from(pdfArray));
   } catch (error) {
-    console.error("Error en /api/gemini:", error);
+    console.error("Error en /api/gemini-diagnostico:", error);
     res.status(500).json({ error: "No se pudo generar la propuesta" });
   }
 }
