@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 import {
   Container,
   Box,
@@ -12,7 +13,7 @@ import {
   Link,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import jsPDF from "jspdf";
+import Swal from "sweetalert2";
 
 const theme = createTheme({
   palette: {
@@ -25,9 +26,14 @@ const theme = createTheme({
 
 export default function DiagnosticoInteligentePage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [authChecked, setAuthChecked] = useState(false);
 
-  const [empresa, setEmpresa] = useState("");
+  // Datos del formulario
+  const [nombreCliente, setNombreCliente] = useState("");
+  const [nombreEmpresa, setNombreEmpresa] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [giro, setGiro] = useState("");
   const [empleados, setEmpleados] = useState("");
   const [procesos, setProcesos] = useState("");
@@ -41,17 +47,54 @@ export default function DiagnosticoInteligentePage() {
 
   const [resultado, setResultado] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [errores, setErrores] = useState({});
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) {
-      router.replace("/login");
-    } else {
+    if (status === "authenticated") {
       setAuthChecked(true);
+    } else if (status === "unauthenticated") {
+      router.replace("/login");
     }
-  }, [router]);
+  }, [status, router]);
+
+  // Función para validar email
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+  // Función para validar teléfono (solo dígitos y mínimo 8)
+  function validatePhone(phone) {
+    return /^\d{8,}$/.test(phone);
+  }
 
   const handleGenerarDiagnostico = () => {
+    // Validación de campos obligatorios y formato
+    const nuevosErrores = {};
+    if (!nombreCliente.trim())
+      nuevosErrores.nombreCliente = "Campo obligatorio";
+    if (!nombreEmpresa.trim())
+      nuevosErrores.nombreEmpresa = "Campo obligatorio";
+    if (!email.trim()) nuevosErrores.email = "Campo obligatorio";
+    if (!telefono.trim()) nuevosErrores.telefono = "Campo obligatorio";
+    if (email && !validateEmail(email)) nuevosErrores.email = "Correo inválido";
+    if (telefono && !validatePhone(telefono))
+      nuevosErrores.telefono = "Teléfono inválido (mínimo 8 dígitos)";
+    setErrores(nuevosErrores);
+    if (Object.keys(nuevosErrores).length > 0) {
+      let mensaje = "Por favor corrige los siguientes campos obligatorios:";
+      if (nuevosErrores.nombreCliente) mensaje += "\n- Nombre completo";
+      if (nuevosErrores.nombreEmpresa) mensaje += "\n- Nombre de la empresa";
+      if (nuevosErrores.email)
+        mensaje += `\n- Correo electrónico: ${nuevosErrores.email}`;
+      if (nuevosErrores.telefono)
+        mensaje += `\n- Teléfono: ${nuevosErrores.telefono}`;
+      Swal.fire({
+        icon: "warning",
+        title: "Datos incompletos o inválidos",
+        text: mensaje,
+      });
+      return;
+    }
+
     setLoading(true);
     setResultado(null);
 
@@ -71,67 +114,71 @@ export default function DiagnosticoInteligentePage() {
     }, 1500);
   };
 
-  const generarPDF = () => {
-    if (!resultado) return;
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text("PROPUESTA DE IMPLEMENTACIÓN DE ODOO", 20, 20);
-
-    const addSection = (title, content, yPos) => {
-      doc.setFontSize(12);
-      doc.text(title, 20, yPos);
-      doc.setFontSize(11);
-      const lines = doc.splitTextToSize(content, 170);
-      doc.text(lines, 20, yPos + 6);
-      return yPos + 6 + lines.length * 6;
-    };
-
-    let y = 30;
-    y = addSection(
-      "1. Procesos Actuales Identificados",
-      resultado.procesos || "No especificado",
-      y
-    );
-    y = addSection(
-      "2. Objetivos del Proyecto",
-      resultado.objetivos || "No especificado",
-      y
-    );
-    y = addSection(
-      "3. Alcance del Proyecto",
-      resultado.alcance || "No especificado",
-      y
-    );
-    y = addSection(
-      "4. Fuera del Alcance",
-      resultado.fueraAlcance || "No especificado",
-      y
-    );
-    y = addSection(
-      "5. Entregables del Proyecto",
-      resultado.entregables || "No especificado",
-      y
-    );
-    y = addSection(
-      "6. Método de Implementación",
-      resultado.metodo || "No especificado",
-      y
-    );
-    y = addSection(
-      "7. Condiciones Comerciales",
-      resultado.condiciones || "No especificado",
-      y
-    );
-
-    doc.setFontSize(10);
-    const footerText =
-      "Esta propuesta es un borrador preliminar. Para una definición precisa, agende una reunión en: https://calendly.com/tersoft/primera-sesion-para-conocer-necesidades-de-su-empresa";
-    const footerLines = doc.splitTextToSize(footerText, 170);
-    doc.text(footerLines, 20, y + 10);
-    doc.save("propuesta_odoo.pdf");
+  const generarPDF = async () => {
+    // Validación previa (opcional, ya está en handleGenerarDiagnostico)
+    if (!nombreCliente || !nombreEmpresa || !email || !telefono) {
+      Swal.fire({
+        icon: "warning",
+        title: "Datos incompletos",
+        text: "Por favor completa los datos del cliente antes de descargar el PDF.",
+      });
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload = {
+        nombreCliente,
+        nombreEmpresa,
+        email,
+        telefono,
+        giro,
+        empleados,
+        procesos,
+        problemas,
+        objetivos,
+        clientes,
+        productos,
+        ventas,
+        logistica,
+        equipoTI,
+      };
+      const res = await fetch("/api/gemini-diagnostico", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("No se pudo generar el PDF");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Diagnostico-Odoo.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      Swal.fire({
+        icon: "success",
+        title: "PDF generado",
+        text: "El diagnóstico se descargó correctamente.",
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo generar el PDF. Intenta de nuevo.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!authChecked) return null;
+  // Redirige si no está autenticado
+  if (status === "loading") return null;
+  if (!session) {
+    if (typeof window !== "undefined") router.replace("/login");
+    return null;
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -139,7 +186,6 @@ export default function DiagnosticoInteligentePage() {
         <title>Diagnóstico Inteligente | Tersoft.mx</title>
         <meta name="description" content="Diagnóstico asistido por IA" />
       </Head>
-
       <Box sx={{ bgcolor: "background.default", py: 4 }}>
         <Container maxWidth="md">
           <Paper elevation={1} sx={{ p: { xs: 2, md: 4 }, borderRadius: 2 }}>
@@ -147,219 +193,289 @@ export default function DiagnosticoInteligentePage() {
               variant="h5"
               fontWeight="bold"
               gutterBottom
-              color="text.primary"
+              sx={{ color: "#01a09d", fontSize: "2.5rem" }}
             >
               Diagnóstico inteligente para tu empresa
             </Typography>
-            <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
-              Responde algunas preguntas sobre tu negocio. Usaremos esta
-              información para definir el alcance ideal de tu implementación
-              Odoo.
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              <strong>Nota:</strong> Este diagnóstico genera un{" "}
-              <strong>borrador automático</strong>. Para definir el alcance de
-              forma precisa, te recomendamos agendar una reunión en nuestro{" "}
-              <Link
-                href="https://calendly.com/tersoft/primera-sesion-para-conocer-necesidades-de-su-empresa"
-                target="_blank"
-                rel="noopener"
-              >
-                Calendly
-              </Link>
-              .
+            <Typography variant="body1" color="text.primary" sx={{ mb: 3 }}>
+              Responde las siguientes preguntas para definir el alcance ideal de
+              tu implementación Odoo.
             </Typography>
             <Divider sx={{ mb: 3 }} />
 
-            {/* Formulario con preguntas en negrita */}
+            {/* SECCIÓN 1: DATOS DEL CLIENTE */}
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color="primary"
+              sx={{ mb: 2 }}
+            >
+              Datos del cliente
+            </Typography>
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+              <Typography
+                variant="subtitle2"
+                fontWeight="bold"
+                sx={{ mb: 0.5 }}
+              >
+                Nombre completo
+              </Typography>
+              <TextField
+                label="Nombre completo"
+                variant="outlined"
+                fullWidth
+                required
+                value={nombreCliente}
+                onChange={(e) => setNombreCliente(e.target.value)}
+                error={!!errores.nombreCliente}
+                helperText={errores.nombreCliente}
+                sx={{ mb: 2 }}
+              />
+              <Typography
+                variant="subtitle2"
+                fontWeight="bold"
+                sx={{ mb: 0.5 }}
+              >
                 Nombre de la empresa
               </Typography>
               <TextField
-                fullWidth
+                label="Nombre de la empresa"
                 variant="outlined"
-                value={empresa}
-                onChange={(e) => setEmpresa(e.target.value)}
+                fullWidth
+                required
+                value={nombreEmpresa}
+                onChange={(e) => setNombreEmpresa(e.target.value)}
+                error={!!errores.nombreEmpresa}
+                helperText={errores.nombreEmpresa}
+                sx={{ mb: 2 }}
+              />
+              <Typography
+                variant="subtitle2"
+                fontWeight="bold"
+                sx={{ mb: 0.5 }}
+              >
+                Correo electrónico
+              </Typography>
+              <TextField
+                label="Correo electrónico"
+                variant="outlined"
+                fullWidth
+                required
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                error={!!errores.email}
+                helperText={errores.email}
+                sx={{ mb: 2 }}
+              />
+              <Typography
+                variant="subtitle2"
+                fontWeight="bold"
+                sx={{ mb: 0.5 }}
+              >
+                Número de teléfono
+              </Typography>
+              <TextField
+                label="Número de teléfono"
+                variant="outlined"
+                fullWidth
+                required
+                type="tel"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                error={!!errores.telefono}
+                helperText={errores.telefono}
+                sx={{ mb: 2 }}
               />
             </Box>
 
+            <Divider sx={{ my: 3 }} />
+
+            {/* SECCIÓN 2: PREGUNTAS DE DIAGNÓSTICO */}
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color="primary"
+              sx={{ mb: 2 }}
+            >
+              Preguntas de diagnóstico
+            </Typography>
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿A qué se dedica tu empresa? (Giro del negocio)
+                ¿A qué sector o industria pertenece su empresa?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 value={giro}
                 onChange={(e) => setGiro(e.target.value)}
+                placeholder="Ejemplo: Manufactura, Retail, Salud, etc."
               />
             </Box>
-
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Cuántas personas trabajan en tu empresa?
+                ¿Cuántos empleados tiene actualmente su empresa?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 type="number"
                 value={empleados}
                 onChange={(e) => setEmpleados(e.target.value)}
+                placeholder="Ejemplo: 50 empleados"
               />
             </Box>
-
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Cómo gestionan actualmente sus procesos administrativos o
-                financieros?
+                ¿Cuáles son sus procesos más críticos (ventas, compras,
+                inventarios, contabilidad, RR. HH., etc.) y qué desafíos
+                enfrentan en cada uno?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 multiline
-                minRows={3}
+                minRows={2}
                 value={procesos}
                 onChange={(e) => setProcesos(e.target.value)}
+                placeholder="Ejemplo: Ventas (seguimiento de oportunidades), Inventarios (control de stock), etc."
               />
             </Box>
-
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Qué problemas o limitaciones enfrentan hoy en día?
+                ¿Qué sistemas o aplicaciones utilizan hoy para gestionar esos
+                procesos?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 multiline
-                minRows={3}
+                minRows={2}
                 value={problemas}
                 onChange={(e) => setProblemas(e.target.value)}
+                placeholder="Ejemplo: Excel, SAP, sistemas propios, Quickbooks, etc."
               />
             </Box>
-
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Qué te gustaría lograr al implementar un sistema como Odoo?
+                ¿Qué módulos de Odoo consideran indispensables en una primera
+                etapa?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 multiline
-                minRows={3}
+                minRows={2}
                 value={objetivos}
                 onChange={(e) => setObjetivos(e.target.value)}
+                placeholder="Ejemplo: CRM, Ventas, Compras, Inventarios, Proyectos, Contabilidad, Nómina, e-commerce, etc."
               />
             </Box>
-
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Cómo captan y atienden a sus clientes?
+                ¿Cuántos usuarios ingresarán al sistema de forma regular y qué
+                perfiles o permisos necesitarán?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 multiline
                 minRows={2}
                 value={clientes}
                 onChange={(e) => setClientes(e.target.value)}
+                placeholder="Ejemplo: 10 usuarios, 2 administradores, 3 ventas, 5 solo lectura."
               />
             </Box>
 
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Qué productos o servicios ofrecen y cómo los venden?
+                ¿Requieren alta disponibilidad y tolerancia a fallos, o estiman
+                un volumen específico de transacciones por hora o tamaño de base
+                de datos?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
-                multiline
-                minRows={2}
-                value={productos}
-                onChange={(e) => setProductos(e.target.value)}
-              />
-            </Box>
-
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Cómo llevan el control de sus ventas y facturación?
-              </Typography>
-              <TextField
-                fullWidth
-                variant="outlined"
                 multiline
                 minRows={2}
                 value={ventas}
                 onChange={(e) => setVentas(e.target.value)}
+                placeholder="Ejemplo: Alta disponibilidad, 100 transacciones/hora, base de datos de 10GB, etc."
               />
             </Box>
-
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Cómo gestionan la entrega de productos o servicios (logística)?
+                ¿Qué sistemas externos desean conectar con Odoo y con qué
+                frecuencia deben sincronizarse?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
                 multiline
                 minRows={2}
                 value={logistica}
                 onChange={(e) => setLogistica(e.target.value)}
+                placeholder="Ejemplo: Integración con tienda en línea, portal de proveedores, sincronización diaria con CRM previo, etc."
               />
             </Box>
-
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                ¿Cuentan con personal de tecnología o alguien que administre
-                sistemas actualmente?
+                ¿Necesitan importar datos históricos (clientes, productos,
+                facturas, stock), y de qué antigüedad?
               </Typography>
               <TextField
                 fullWidth
-                variant="outlined"
+                multiline
+                minRows={2}
+                value={productos}
+                onChange={(e) => setProductos(e.target.value)}
+                placeholder="Ejemplo: Importar clientes y facturas de los últimos 3 años."
+              />
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Qué flujos de trabajo o reportes propios de su operación
+                quisieran automatizar o adaptar mediante desarrollos a medida?
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                minRows={2}
+                value={resultado}
+                onChange={(e) => setResultado(e.target.value)}
+                placeholder="Ejemplo: Automatizar aprobación de compras, reporte de ventas personalizado, etc."
+              />
+            </Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                ¿Con qué equipo de TI interno cuentan para la implementación y
+                mantenimiento, y qué nivel de soporte externo esperan tras el
+                lanzamiento?
+              </Typography>
+              <TextField
+                fullWidth
                 multiline
                 minRows={2}
                 value={equipoTI}
                 onChange={(e) => setEquipoTI(e.target.value)}
+                placeholder="Ejemplo: 1 persona de TI interna, soporte externo esperado 24/7 durante el primer año."
               />
             </Box>
-
             <Button
               variant="contained"
-              color="primary"
               fullWidth
-              onClick={handleGenerarDiagnostico}
+              onClick={generarPDF}
               disabled={loading}
+              sx={{
+                fontSize: "1rem",
+                padding: "1rem 1.5rem",
+                backgroundColor: "#a4478d",
+                color: "#ffffff",
+                transition: "transform 0.2s ease-in-out",
+                "&:hover": {
+                  backgroundColor: "#922c76",
+                  transform: "scale(1.05)",
+                },
+                "&:disabled": {
+                  backgroundColor: "#d3d3d3",
+                  color: "#8c8c8c",
+                },
+              }}
             >
-              {loading
-                ? "Generando propuesta..."
-                : "GENERAR PROPUESTA DE ALCANCE"}
+              {loading ? "Procesando…" : "Generar diagnóstico"}
             </Button>
-
-            {resultado && (
-              <Box sx={{ mt: 4 }}>
-                <Divider sx={{ mb: 2 }} />
-                <Typography
-                  variant="subtitle1"
-                  fontWeight="bold"
-                  color="text.primary"
-                  sx={{ mb: 1 }}
-                >
-                  Resultado generado automáticamente:
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ whiteSpace: "pre-wrap", mb: 2 }}
-                  color="text.primary"
-                >
-                  {Object.entries(resultado).map(
-                    ([key, val]) => `**${key.toUpperCase()}**\n${val}\n\n`
-                  )}
-                </Typography>
-                <Button variant="outlined" onClick={generarPDF}>
-                  Descargar propuesta en PDF
-                </Button>
-              </Box>
-            )}
           </Paper>
         </Container>
       </Box>
