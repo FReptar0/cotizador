@@ -177,6 +177,38 @@ export default function LandingLoginPage() {
           </Grid>
         </Container>
 
+        {/* CÓMO USAR EL COTIZADOR - VIDEO */}
+        <Box sx={{ py: 8, bgcolor: "#f9f9fb", textAlign: "center" }}>
+          <Container maxWidth="md">
+            <Typography variant="h4" gutterBottom>
+              ¿Cómo usar el cotizador?
+            </Typography>
+            <Typography sx={{ mb: 4 }}>
+              En este video te mostramos paso a paso cómo utilizar la plataforma
+              para cotizar tu proyecto de Odoo, desde el inicio de sesión hasta
+              la descarga de tu propuesta personalizada.
+            </Typography>
+            <Box sx={{ position: "relative", paddingTop: "56.25%", mb: 2 }}>
+              <iframe
+                src="https://www.youtube.com/embed/1aj7u1fogns"
+                title="Cómo usar el cotizador Tersoft"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: 12,
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+                }}
+              ></iframe>
+            </Box>
+          </Container>
+        </Box>
+
         <Divider />
 
         {/* NOSOTROS */}
