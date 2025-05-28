@@ -64,9 +64,10 @@ export default async function handler(req, res) {
   ];
 
   try {
+    const sheetName = process.env.GOOGLE_SHEETS_TAB_NAME || "Respuestas";
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEETS_ID,
-      range: "Respuestas!A:Q", // ✅ indicamos columnas A–Q
+      range: `${sheetName}!A:Q`, // Usa el nombre de la hoja desde variable de entorno
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values: [row] },
