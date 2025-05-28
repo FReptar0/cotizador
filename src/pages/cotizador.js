@@ -132,6 +132,7 @@ export default function CotizadorPage() {
   const [hosteo, setHosteo] = useState("Odoo Online");
   const [operaciones, setOperaciones] = useState("no");
   const [fechaInicio, setFechaInicio] = useState("Aún no tengo claro");
+  const [integrationPlatform, setIntegrationPlatform] = useState("");
 
   // NUEVOS estados para Odoo.sh
   const [gbStorage, setGbStorage] = useState(1);
@@ -304,12 +305,15 @@ export default function CotizadorPage() {
       const payload = {
         customerName,
         customerCompany,
+        customerEmail,
+        customerPhone,
         selectedModules,
         implementationType,
         nEmpresas,
         urgenciaDias,
         importacionDatos,
         integraciones,
+        integrationPlatform, // <-- nuevo campo
         personalizaciones,
         reportes,
         orderRange,
@@ -362,8 +366,15 @@ export default function CotizadorPage() {
         }),
       });
       const mailText = await mailRes.text();
-      console.log("📤 /api/send-email respondió:", mailRes.status, mailText);
+
       if (!mailRes.ok) throw new Error(mailText);
+
+      // 4) Guardar respuestas en Google Sheets
+      await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       await Swal.fire(
         "¡Listo!",
@@ -1185,7 +1196,10 @@ export default function CotizadorPage() {
                   <FormControl component="fieldset" fullWidth>
                     <RadioGroup
                       value={integraciones}
-                      onChange={(e) => setIntegraciones(e.target.value)}
+                      onChange={(e) => {
+                        setIntegraciones(e.target.value);
+                        if (e.target.value === "no") setIntegrationPlatform("");
+                      }}
                     >
                       <FormControlLabel
                         value="sí"
@@ -1199,6 +1213,16 @@ export default function CotizadorPage() {
                       />
                     </RadioGroup>
                   </FormControl>
+                  {integraciones === "sí" && (
+                    <TextField
+                      label="Ingrese el nombre de la plataforma a hacer la integración"
+                      variant="outlined"
+                      fullWidth
+                      sx={{ mt: 2 }}
+                      value={integrationPlatform}
+                      onChange={(e) => setIntegrationPlatform(e.target.value)}
+                    />
+                  )}
                 </Box>
 
                 {/* cuentas contables*/}
