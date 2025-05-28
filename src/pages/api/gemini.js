@@ -254,18 +254,25 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
       doc.addPage();
       y = marginY;
     }
-    y += lineHeight * 2;
+    // Doble espacio antes de la línea de firma
+    y += lineHeight * 4;
     doc.setFont("helvetica", "bold");
-    doc.text("Aceptación de la propuesta", pageWidth / 2, y, { align: "center" });
+    doc.text("Aceptación de la propuesta", pageWidth / 2, y, {
+      align: "center",
+    });
     y += lineHeight * 2;
     doc.setFont("helvetica", "normal");
     // Línea para firma
-    doc.text("______________________________", pageWidth / 2, y, { align: "center" });
+    doc.text("______________________________", pageWidth / 2, y, {
+      align: "center",
+    });
     y += lineHeight * 1.2;
     // Nombre y empresa centrados debajo de la línea
     doc.text(`Nombre: ${customerName}`, pageWidth / 2, y, { align: "center" });
     y += lineHeight;
-    doc.text(`Empresa: ${customerCompany}`, pageWidth / 2, y, { align: "center" });
+    doc.text(`Empresa: ${customerCompany}`, pageWidth / 2, y, {
+      align: "center",
+    });
     y += lineHeight * 2;
 
     const pdfArray = doc.output("arraybuffer");
