@@ -250,6 +250,10 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
     // 9) Devolvemos el PDF al navegador
     const pdfArray = doc.output("arraybuffer");
     res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="Propuesta de Odoo para ${customerCompany}.pdf"`
+    );
     res.send(Buffer.from(pdfArray));
   } catch (error) {
     console.error("Error en /api/gemini:", error);
