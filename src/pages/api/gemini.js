@@ -123,7 +123,7 @@ Fecha: ${today}
     - Escribir "Los costos del proyecto son los siguientes:
     - Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
     - Implementación: MX$ ${quote} + IVA (con tersoft)
-    - Condiciones de pago: 50% al inicio del proyecto y 50% al finalizar la implementación.
+    - Condiciones de pago: 100% al finalizar la implementación.
 9. Conclusión
    -  escribir "La implementacion de odoo proporcionara a ${customerCompany} una plataforma integrada y eficiente para gestionar sus operaciones. Con la implementación de Odoo, ${customerCompany} podrá optimizar sus procesos, mejorar la colaboración entre departamentos y tomar decisiones informadas basadas en datos en tiempo real. Estamos comprometidos a brindar un servicio de alta calidad y a garantizar el éxito de esta implementación."
 
