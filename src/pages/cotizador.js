@@ -339,7 +339,7 @@ export default function CotizadorPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "Propuesta.pdf";
+      a.download = `Propuesta de Odoo para ${customerCompany}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
