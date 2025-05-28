@@ -40,7 +40,29 @@ export default async function handler(req, res) {
 
   const sheets = google.sheets({ version: "v4", auth });
 
-  // 4️⃣ Prepara la fila en el mismo orden de tus columnas A–Q
+  // Formatear orderRange para mostrar el rango correcto
+  let orderRangeFormatted = orderRange;
+  if (orderRange === 100 || orderRange === "100") {
+    orderRangeFormatted = "0 a 100";
+  } else if (orderRange === 200 || orderRange === "200") {
+    orderRangeFormatted = "101 a 200";
+  } else if (orderRange === 500 || orderRange === "500") {
+    orderRangeFormatted = "201 a 500";
+  } else if (Number(orderRange) > 500) {
+    orderRangeFormatted = "Más de 500";
+  }
+
+  // Nuevo: determinar el valor de la plataforma de integración
+  let integrationPlatformValue = "-";
+  let integracionesValue = integraciones;
+  if (integraciones === "sí" && req.body.integrationPlatform) {
+    integrationPlatformValue = req.body.integrationPlatform.trim() || "-";
+  } else if (integraciones === "no") {
+    integracionesValue = "-";
+    integrationPlatformValue = "-";
+  }
+
+  // 4️⃣ Prepara la fila en el mismo orden de tus columnas A–Q (ahora A–R)
   const row = [
     new Date().toLocaleString(), // A: Fecha
     customerName, // B
@@ -53,21 +75,22 @@ export default async function handler(req, res) {
     implementationType, // G
     nEmpresas, // H
     importacionDatos, // I
-    integraciones, // J
-    personalizaciones, // K
-    reportes, // L
-    orderRange, // M
-    multimoneda, // N
-    estimatedHours, // O
-    licenseQuote, // P
-    quote, // Q
+    integracionesValue, // J (ahora puede ser "-" si no)
+    integrationPlatformValue, // K (nuevo campo: plataforma integración)
+    personalizaciones, // L
+    reportes, // M
+    orderRangeFormatted, // N (usa el rango formateado)
+    multimoneda, // O
+    estimatedHours, // P
+    licenseQuote, // Q
+    quote, // R
   ];
 
   try {
     const sheetName = process.env.GOOGLE_SHEETS_TAB_NAME || "Respuestas";
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEETS_ID,
-      range: `${sheetName}!A:Q`, // Usa el nombre de la hoja desde variable de entorno
+      range: `${sheetName}!A:R`, // Ahora columnas A–R
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
       requestBody: { values: [row] },
