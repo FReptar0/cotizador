@@ -249,20 +249,23 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
 
     // 9) Devolvemos el PDF al navegador
 
-    // --- NUEVO BLOQUE: Sección de aceptación ---
-    // Añadir una página si no hay suficiente espacio
-    if (y > pageHeight - marginY - 3 * lineHeight) {
+    // --- NUEVO BLOQUE: Sección de aceptación centrada con línea para firma ---
+    if (y > pageHeight - marginY - 5 * lineHeight) {
       doc.addPage();
       y = marginY;
     }
     y += lineHeight * 2;
     doc.setFont("helvetica", "bold");
-    doc.text("Aceptación de la propuesta", marginX, y);
+    doc.text("Aceptación de la propuesta", pageWidth / 2, y, { align: "center" });
     y += lineHeight * 2;
     doc.setFont("helvetica", "normal");
-    doc.text(`Nombre: ${customerName}`, marginX, y);
+    // Línea para firma
+    doc.text("______________________________", pageWidth / 2, y, { align: "center" });
+    y += lineHeight * 1.2;
+    // Nombre y empresa centrados debajo de la línea
+    doc.text(`Nombre: ${customerName}`, pageWidth / 2, y, { align: "center" });
     y += lineHeight;
-    doc.text(`Empresa: ${customerCompany}`, marginX, y);
+    doc.text(`Empresa: ${customerCompany}`, pageWidth / 2, y, { align: "center" });
     y += lineHeight * 2;
 
     const pdfArray = doc.output("arraybuffer");
