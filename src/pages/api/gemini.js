@@ -84,7 +84,7 @@ Fecha: ${today}
     - Escribir "El alcance del proyecto incluye la implementación de los siguientes módulos de Odoo:
     
 5. Fuera del Alcance
-    - Escribir "Escribir algunos modulos que no se implementarán en esta fase del proyecto, como por ejemplo: CRM, Marketing, etc. (segun sea el caso)"
+    - Escribir "En esta fase del proyecto no se implementará ningun módulo que no se incluya en la cotización"
 6. Entregables del Proyecto
     - Escribir Los entregables incluirán: 
     • Documentación de requisitos con detalles de configuración y personalización.
@@ -140,7 +140,7 @@ Datos para la sección 8:
 - Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
 - Implementación: MX$ ${quote} + IVA (con tersoft)
 
-Genera el contenido en español, siguiendo exactamente esas nueve secciones y nada más.
+Genera el contenido en español sin faltas de ortografia, siguiendo exactamente esas nueve secciones y nada más.
 `;
 
     // 6) Inicializamos Gemini y pedimos la generación
@@ -248,8 +248,39 @@ Genera el contenido en español, siguiendo exactamente esas nueve secciones y na
     }
 
     // 9) Devolvemos el PDF al navegador
+
+    // --- NUEVO BLOQUE: Sección de aceptación centrada con línea para firma ---
+    if (y > pageHeight - marginY - 5 * lineHeight) {
+      doc.addPage();
+      y = marginY;
+    }
+    // Doble espacio antes de la línea de firma
+    y += lineHeight * 4;
+    doc.setFont("helvetica", "bold");
+    doc.text("Aceptación de la propuesta", pageWidth / 2, y, {
+      align: "center",
+    });
+    y += lineHeight * 2;
+    doc.setFont("helvetica", "normal");
+    // Línea para firma
+    doc.text("______________________________", pageWidth / 2, y, {
+      align: "center",
+    });
+    y += lineHeight * 1.2;
+    // Nombre y empresa centrados debajo de la línea
+    doc.text(`Nombre: ${customerName}`, pageWidth / 2, y, { align: "center" });
+    y += lineHeight;
+    doc.text(`Empresa: ${customerCompany}`, pageWidth / 2, y, {
+      align: "center",
+    });
+    y += lineHeight * 2;
+
     const pdfArray = doc.output("arraybuffer");
     res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=\"Propuesta de Odoo para ${customerCompany}.pdf\"`
+    );
     res.send(Buffer.from(pdfArray));
   } catch (error) {
     console.error("Error en /api/gemini:", error);
