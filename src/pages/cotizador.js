@@ -304,6 +304,8 @@ export default function CotizadorPage() {
       const payload = {
         customerName,
         customerCompany,
+        customerEmail,
+        customerPhone,
         selectedModules,
         implementationType,
         nEmpresas,
@@ -362,8 +364,15 @@ export default function CotizadorPage() {
         }),
       });
       const mailText = await mailRes.text();
-      console.log("📤 /api/send-email respondió:", mailRes.status, mailText);
+
       if (!mailRes.ok) throw new Error(mailText);
+
+      // 4) Guardar respuestas en Google Sheets
+      await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       await Swal.fire(
         "¡Listo!",
