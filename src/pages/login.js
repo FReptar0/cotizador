@@ -142,38 +142,209 @@ export default function LandingLoginPage() {
           </Container>
         </Box>
 
-        {/* BENEFICIOS */}
-        <Container maxWidth="lg" sx={{ py: 8 }}>
-          <Grid container spacing={4} justifyContent="center">
+        {/* CARACTERÍSTICAS DEL COTIZADOR - 2 FILAS, 5 COLUMNAS REALES */}
+        <Container maxWidth="lg" sx={{ py: 10 }}>
+          <Typography
+            variant="h4"
+            gutterBottom
+            textAlign="center"
+            sx={{ fontWeight: 700 }}
+          >
+            Características principales del cotizador
+          </Typography>
+
+          <Grid
+            container
+            spacing={6}
+            justifyContent="center"
+            columns={{ xs: 1, sm: 2, md: 5 }}
+            sx={{ mt: 4 }}
+          >
             {[
               {
-                icon: <SpeedIcon color="primary" fontSize="large" />,
+                icon: (
+                  <SpeedIcon
+                    sx={{
+                      color: "#ff5a5f",
+                      fontSize: 48,
+                      bgcolor: "#ffeaea",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
                 title: "Rápido",
                 desc: "Recibe cotizaciones en segundos.",
               },
               {
-                icon: <AttachMoneyIcon color="primary" fontSize="large" />,
+                icon: (
+                  <AttachMoneyIcon
+                    sx={{
+                      color: "#4f8cff",
+                      fontSize: 48,
+                      bgcolor: "#eaf1ff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
                 title: "Preciso",
                 desc: "Estimaciones confiables y detalladas.",
               },
               {
-                icon: <SecurityIcon color="primary" fontSize="large" />,
+                icon: (
+                  <SecurityIcon
+                    sx={{
+                      color: "#a259e6",
+                      fontSize: 48,
+                      bgcolor: "#f3eaff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
                 title: "Seguro",
                 desc: "Tus datos resguardados con privacidad.",
               },
               {
-                icon: <PeopleIcon color="primary" fontSize="large" />,
+                icon: (
+                  <PeopleIcon
+                    sx={{
+                      color: "#00b894",
+                      fontSize: 48,
+                      bgcolor: "#eafff6",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
                 title: "Colaborativo",
-                desc: "Comparte resultados con tu equipo.",
+                desc: "Comparte resultados con tu equipo fácilmente.",
+              },
+              {
+                icon: (
+                  <BusinessIcon
+                    sx={{
+                      color: "#fdcb6e",
+                      fontSize: 48,
+                      bgcolor: "#fff7e6",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Personalizable",
+                desc: "Adapta la cotización a las necesidades de tu empresa.",
+              },
+              {
+                icon: (
+                  <HandshakeIcon
+                    sx={{
+                      color: "#00b0ff",
+                      fontSize: 48,
+                      bgcolor: "#e6f7ff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Soporte experto",
+                desc: "Acompañamiento de consultores certificados.",
+              },
+              {
+                icon: (
+                  <SpeedIcon
+                    sx={{
+                      color: "#6c5ce7",
+                      fontSize: 48,
+                      bgcolor: "#f0eaff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Descarga inmediata",
+                desc: "Obtén tu propuesta en PDF al instante.",
+              },
+              {
+                icon: (
+                  <AttachMoneyIcon
+                    sx={{
+                      color: "#00b894",
+                      fontSize: 48,
+                      bgcolor: "#eafff6",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Sin costo",
+                desc: "Cotiza gratis y sin compromiso.",
+              },
+              {
+                icon: (
+                  <SecurityIcon
+                    sx={{
+                      color: "#fd79a8",
+                      fontSize: 48,
+                      bgcolor: "#ffeaf6",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Privacidad total",
+                desc: "Tus datos no se comparten con terceros.",
+              },
+              {
+                icon: (
+                  <PeopleIcon
+                    sx={{
+                      color: "#0984e3",
+                      fontSize: 48,
+                      bgcolor: "#eaf4ff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Accesible",
+                desc: "Disponible 24/7 desde cualquier dispositivo.",
               },
             ].map((item, idx) => (
-              <Grid item xs={12} sm={6} md={3} key={idx}>
-                <Box textAlign="center">
+              <Grid
+                item
+                xs={1}
+                sm={1}
+                md={1}
+                key={idx}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Box textAlign="center" width="100%">
                   {item.icon}
-                  <Typography variant="h6" sx={{ mt: 1, mb: 0.5 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ mt: 2, mb: 1, fontWeight: 700 }}
+                  >
                     {item.title}
                   </Typography>
-                  <Typography>{item.desc}</Typography>
+                  <Typography color="text.secondary" sx={{ mb: 2 }}>
+                    {item.desc}
+                  </Typography>
                 </Box>
               </Grid>
             ))}
