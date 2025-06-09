@@ -142,7 +142,8 @@ export default function LandingLoginPage() {
           </Container>
         </Box>
 
-        {/* CARACTERÍSTICAS DEL COTIZADOR - 2 FILAS, 5 COLUMNAS REALES */}
+        {/* CARACTERÍSTICAS DEL COTIZADOR - 2 FILAS DE 4 COLUMNAS, CUADRÍCULA PERFECTA */}
+        {/* CARACTERÍSTICAS DEL COTIZADOR - 2 FILAS DE 4 COLUMNAS */}
         <Container maxWidth="lg" sx={{ py: 10 }}>
           <Typography
             variant="h4"
@@ -155,10 +156,17 @@ export default function LandingLoginPage() {
 
           <Grid
             container
-            spacing={6}
-            justifyContent="center"
-            columns={{ xs: 1, sm: 2, md: 5 }}
-            sx={{ mt: 4 }}
+            sx={{
+              mt: 4,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(4, 1fr)", // 4 columnas fijas en md+
+              },
+              gap: 6, // igual a spacing={6}
+              justifyItems: "center",
+            }}
           >
             {[
               {
@@ -192,38 +200,6 @@ export default function LandingLoginPage() {
                 ),
                 title: "Preciso",
                 desc: "Estimaciones confiables y detalladas.",
-              },
-              {
-                icon: (
-                  <SecurityIcon
-                    sx={{
-                      color: "#a259e6",
-                      fontSize: 48,
-                      bgcolor: "#f3eaff",
-                      borderRadius: 2,
-                      p: 1.5,
-                      mb: 2,
-                    }}
-                  />
-                ),
-                title: "Seguro",
-                desc: "Tus datos resguardados con privacidad.",
-              },
-              {
-                icon: (
-                  <PeopleIcon
-                    sx={{
-                      color: "#00b894",
-                      fontSize: 48,
-                      bgcolor: "#eafff6",
-                      borderRadius: 2,
-                      p: 1.5,
-                      mb: 2,
-                    }}
-                  />
-                ),
-                title: "Colaborativo",
-                desc: "Comparte resultados con tu equipo fácilmente.",
               },
               {
                 icon: (
@@ -322,31 +298,15 @@ export default function LandingLoginPage() {
                 desc: "Disponible 24/7 desde cualquier dispositivo.",
               },
             ].map((item, idx) => (
-              <Grid
-                item
-                xs={1}
-                sm={1}
-                md={1}
-                key={idx}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <Box textAlign="center" width="100%">
-                  {item.icon}
-                  <Typography
-                    variant="h6"
-                    sx={{ mt: 2, mb: 1, fontWeight: 700 }}
-                  >
-                    {item.title}
-                  </Typography>
-                  <Typography color="text.secondary" sx={{ mb: 2 }}>
-                    {item.desc}
-                  </Typography>
-                </Box>
-              </Grid>
+              <Box key={idx} textAlign="center">
+                {item.icon}
+                <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 700 }}>
+                  {item.title}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mb: 2 }}>
+                  {item.desc}
+                </Typography>
+              </Box>
             ))}
           </Grid>
         </Container>
