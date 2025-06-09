@@ -1,5 +1,6 @@
+// pages/login.js
+import React, { useEffect } from "react";
 import Head from "next/head";
-import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession, signIn } from "next-auth/react";
 import {
@@ -7,18 +8,22 @@ import {
   Box,
   Typography,
   Button,
-  Paper,
   Grid,
-  Avatar,
   Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Card,
 } from "@mui/material";
+import {
+  Speed as SpeedIcon,
+  AttachMoney as AttachMoneyIcon,
+  Security as SecurityIcon,
+  People as PeopleIcon,
+  Business as BusinessIcon,
+  Handshake as HandshakeIcon,
+} from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import SpeedIcon from "@mui/icons-material/Speed";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import SecurityIcon from "@mui/icons-material/Security";
-import PeopleIcon from "@mui/icons-material/People";
-import BusinessIcon from "@mui/icons-material/Business";
-import HandshakeIcon from "@mui/icons-material/Handshake";
 
 // Tema personalizado
 const theme = createTheme({
@@ -102,7 +107,6 @@ export default function LandingLoginPage() {
             >
               Empodera tu negocio con información clara y profesional.
             </Typography>
-            {/* Botón personalizado */}
             <Button
               fullWidth
               variant="outlined"
@@ -139,73 +143,241 @@ export default function LandingLoginPage() {
           </Container>
         </Box>
 
-        {/* BENEFICIOS */}
-        <Container maxWidth="lg" sx={{ py: 8 }}>
-          <Grid container spacing={4} justifyContent="center">
+        {/* CARACTERÍSTICAS DEL COTIZADOR - 2 FILAS DE 4 COLUMNAS */}
+        <Container maxWidth="lg" sx={{ py: 10 }}>
+          <Typography
+            variant="h4"
+            gutterBottom
+            textAlign="center"
+            sx={{ fontWeight: 700 }}
+          >
+            Características principales del cotizador
+          </Typography>
+
+          <Grid
+            container
+            sx={{
+              mt: 4,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(4, 1fr)", // 4 columnas fijas en md+
+              },
+              gap: 6, // igual a spacing={6}
+              justifyItems: "center",
+            }}
+          >
             {[
               {
-                icon: <SpeedIcon color="primary" />,
+                icon: (
+                  <SpeedIcon
+                    sx={{
+                      color: "#ff5a5f",
+                      fontSize: 48,
+                      bgcolor: "#ffeaea",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
                 title: "Rápido",
                 desc: "Recibe cotizaciones en segundos.",
               },
               {
-                icon: <AttachMoneyIcon color="primary" />,
+                icon: (
+                  <AttachMoneyIcon
+                    sx={{
+                      color: "#4f8cff",
+                      fontSize: 48,
+                      bgcolor: "#eaf1ff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
                 title: "Preciso",
                 desc: "Estimaciones confiables y detalladas.",
               },
               {
-                icon: <SecurityIcon color="primary" />,
-                title: "Seguro",
-                desc: "Tus datos resguardados con privacidad.",
+                icon: (
+                  <BusinessIcon
+                    sx={{
+                      color: "#fdcb6e",
+                      fontSize: 48,
+                      bgcolor: "#fff7e6",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Personalizable",
+                desc: "Adapta la cotización a las necesidades de tu empresa.",
               },
               {
-                icon: <PeopleIcon color="primary" />,
-                title: "Colaborativo",
-                desc: "Comparte resultados con tu equipo.",
+                icon: (
+                  <HandshakeIcon
+                    sx={{
+                      color: "#00b0ff",
+                      fontSize: 48,
+                      bgcolor: "#e6f7ff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Soporte experto",
+                desc: "Acompañamiento de consultores certificados.",
+              },
+              {
+                icon: (
+                  <SpeedIcon
+                    sx={{
+                      color: "#6c5ce7",
+                      fontSize: 48,
+                      bgcolor: "#f0eaff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Descarga inmediata",
+                desc: "Obtén tu propuesta en PDF al instante.",
+              },
+              {
+                icon: (
+                  <AttachMoneyIcon
+                    sx={{
+                      color: "#00b894",
+                      fontSize: 48,
+                      bgcolor: "#eafff6",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Sin costo",
+                desc: "Cotiza gratis y sin compromiso.",
+              },
+              {
+                icon: (
+                  <SecurityIcon
+                    sx={{
+                      color: "#fd79a8",
+                      fontSize: 48,
+                      bgcolor: "#ffeaf6",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Privacidad total",
+                desc: "Tus datos no se comparten con terceros.",
+              },
+              {
+                icon: (
+                  <PeopleIcon
+                    sx={{
+                      color: "#0984e3",
+                      fontSize: 48,
+                      bgcolor: "#eaf4ff",
+                      borderRadius: 2,
+                      p: 1.5,
+                      mb: 2,
+                    }}
+                  />
+                ),
+                title: "Accesible",
+                desc: "Disponible 24/7 desde cualquier dispositivo.",
               },
             ].map((item, idx) => (
-              <Grid item xs={12} sm={6} md={3} key={idx}>
-                <Box textAlign="center">
-                  {item.icon}
-                  <Typography variant="h6" sx={{ mt: 1 }}>
-                    {item.title}
-                  </Typography>
-                  <Typography>{item.desc}</Typography>
-                </Box>
-              </Grid>
+              <Box key={idx} textAlign="center">
+                {item.icon}
+                <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 700 }}>
+                  {item.title}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mb: 2 }}>
+                  {item.desc}
+                </Typography>
+              </Box>
             ))}
           </Grid>
         </Container>
 
         {/* CÓMO USAR EL COTIZADOR - VIDEO */}
-        <Box sx={{ py: 8, bgcolor: "#f9f9fb", textAlign: "center" }}>
-          <Container maxWidth="md">
-            <Typography variant="h4" gutterBottom>
-              ¿Cómo usar el cotizador?
+        {/* CÓMO USAR EL COTIZADOR - VIDEO */}
+        <Box
+          component="section"
+          sx={{
+            py: 10,
+            bgcolor: "background.paper",
+          }}
+        >
+          <Container maxWidth="lg">
+            <Typography
+              variant="h4"
+              align="center"
+              sx={{
+                fontWeight: 700,
+                mb: 2,
+                color: "#000000", // título en negro
+              }}
+            >
+              Cómo usar el cotizador de Tersoft
             </Typography>
-            <Typography sx={{ mb: 4 }}>
-              En este video te mostramos paso a paso cómo utilizar la plataforma
-              para cotizar tu proyecto de Odoo, desde el inicio de sesión hasta
-              la descarga de tu propuesta personalizada.
+            <Typography
+              variant="subtitle1"
+              align="center"
+              sx={{
+                mb: 4,
+                color: "text.secondary",
+                maxWidth: 600,
+                mx: "auto",
+                lineHeight: 1.6,
+              }}
+            >
+              En este breve video te mostramos cómo navegar por el cotizador,
+              elegir módulos y descargar tu propuesta en PDF en solo unos clics.
             </Typography>
-            <Box sx={{ position: "relative", paddingTop: "56.25%", mb: 2 }}>
-              <iframe
-                src="https://www.youtube.com/embed/1aj7u1fogns"
-                title="Cómo usar el cotizador Tersoft"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: 12,
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+
+            <Card
+              elevation={3}
+              sx={{
+                borderRadius: 2,
+                overflow: "hidden",
+                mx: "auto",
+                maxWidth: 800,
+              }}
+            >
+              <Box
+                sx={{
+                  position: "relative",
+                  pt: "56.25%" /* 16:9 */,
                 }}
-              ></iframe>
-            </Box>
+              >
+                <iframe
+                  src="https://www.youtube.com/embed/1aj7u1fogns"
+                  title="Cómo usar el cotizador Tersoft"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                  }}
+                />
+              </Box>
+            </Card>
           </Container>
         </Box>
 
@@ -218,16 +390,23 @@ export default function LandingLoginPage() {
               ¿Quiénes somos?
             </Typography>
             <Typography sx={{ mb: 2 }}>
-              <strong>Tersoft MX</strong> es partner oficial de Odoo con más de
-              10 años de colaboración. Además somos expertos en Sage 300 y
-              soluciones ERP en la nube.
+              En <strong>Tersoft MX</strong> somos partner oficial de Odoo con
+              más de 10 años de trayectoria, y expertos en Sage 300 y soluciones
+              ERP a la medida.
             </Typography>
             <Typography sx={{ mb: 2 }}>
-              Con más de <strong>20 años de experiencia</strong>, hemos apoyado
-              a cientos de empresas a optimizar sus procesos y maximizar su ROI.
+              Hemos entregado más de <strong>100 proyectos</strong> exitosos,
+              contamos con un equipo de{" "}
+              <strong>30 consultores certificados</strong> y brindamos soporte{" "}
+              <strong>24/7</strong> para que tu operación nunca se detenga.
+            </Typography>
+            <Typography sx={{ mb: 2 }}>
+              Nuestra misión es impulsar la transformación digital de las
+              empresas, optimizar procesos y maximizar el retorno de inversión
+              (ROI).
             </Typography>
             <Typography sx={{ mb: 4 }}>
-              Visita nuestro sitio:{" "}
+              Visita nuestro sitio oficial:{" "}
               <a
                 href="https://tersoft.mx"
                 target="_blank"
@@ -236,29 +415,122 @@ export default function LandingLoginPage() {
                 tersoft.mx
               </a>
             </Typography>
+
             <Grid container spacing={4} justifyContent="center">
-              <Grid item xs={12} sm={6} md={4}>
-                <BusinessIcon fontSize="large" color="primary" />
-                <Typography variant="h6" sx={{ mt: 1 }}>
-                  Integración ERP
-                </Typography>
-                <Typography>
-                  Conecta módulos y flujos de trabajo sin fisuras.
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <HandshakeIcon fontSize="large" color="primary" />
-                <Typography variant="h6" sx={{ mt: 1 }}>
-                  Soporte Certificado
-                </Typography>
-                <Typography>
-                  Consultores certificados Odoo y Sage 300 a tu servicio.
-                </Typography>
-              </Grid>
+              {[
+                {
+                  icon: <BusinessIcon color="primary" fontSize="large" />,
+                  title: "Integración ERP",
+                  desc: "Implementamos y adaptamos Odoo a tus procesos.",
+                },
+                {
+                  icon: <HandshakeIcon color="primary" fontSize="large" />,
+                  title: "Consultoría Certificada",
+                  desc: "Equipo oficial Odoo y Sage 300 a tu servicio.",
+                },
+                {
+                  icon: <SecurityIcon color="primary" fontSize="large" />,
+                  title: "Soporte 24/7",
+                  desc: "Atención continua para mantener tu negocio activo.",
+                },
+                {
+                  icon: <SpeedIcon color="primary" fontSize="large" />,
+                  title: "Entrega Ágil",
+                  desc: "Metodología ágil para despliegues rápidos y eficientes.",
+                },
+                {
+                  icon: <AttachMoneyIcon color="primary" fontSize="large" />,
+                  title: "ROI Garantizado",
+                  desc: "Estrategias enfocadas en maximizar tu inversión.",
+                },
+                {
+                  icon: <PeopleIcon color="primary" fontSize="large" />,
+                  title: "Comunidad Activa",
+                  desc: "Más de 500 usuarios satisfechos en México.",
+                },
+              ].map((item, idx) => (
+                <Grid item xs={12} sm={6} md={4} key={idx}>
+                  {item.icon}
+                  <Typography variant="h6" sx={{ mt: 1, mb: 0.5 }}>
+                    {item.title}
+                  </Typography>
+                  <Typography color="text.secondary">{item.desc}</Typography>
+                </Grid>
+              ))}
             </Grid>
           </Container>
         </Box>
 
+        {/* PREGUNTAS FRECUENTES */}
+        <Box sx={{ py: 8, bgcolor: "#f9f9fb" }}>
+          <Container maxWidth="md">
+            <Typography variant="h4" gutterBottom textAlign="center">
+              Preguntas Frecuentes
+            </Typography>
+            <Box sx={{ mt: 4 }}>
+              {[
+                {
+                  q: "¿Qué es Odoo y para qué sirve?",
+                  a: "Odoo es un sistema ERP (Enterprise Resource Planning) modular que permite gestionar todas las áreas de una empresa en una sola plataforma: ventas, compras, inventario, contabilidad, recursos humanos y más.",
+                },
+                {
+                  q: "¿Cuánto tiempo tarda la implementación?",
+                  a: "No hay un estimado fijo; el tiempo de implementación siempre dependerá de la complejidad de las operaciones de su negocio, de sus necesidades y de los módulos seleccionados.",
+                },
+                {
+                  q: "¿Puedo agregar más módulos después de la implementación inicial?",
+                  a: "Sí, Odoo es completamente escalable. Puedes agregar nuevos módulos y funcionalidades en cualquier momento según crezcan tus necesidades.",
+                },
+                {
+                  q: "¿Qué incluye el soporte post-implementación?",
+                  a: "Incluye atención a dudas, solución de incidencias, ajustes menores y acompañamiento durante los primeros 15 días después de la puesta en marcha.",
+                },
+                {
+                  q: "¿Cómo se realiza la capacitación a los usuarios?",
+                  a: "Ofrecemos sesiones teórico-prácticas en línea, materiales de apoyo y manuales personalizados para tu empresa.",
+                },
+                {
+                  q: "¿Qué formas de pago aceptan?",
+                  a: "El pago se realiza por transferencia bancaria. No solicitamos anticipo para la consultoría; solo pagas al finalizar la implementación.",
+                },
+                {
+                  q: "¿Mis datos estarán seguros en Odoo?",
+                  a: "Sí, Odoo cuenta con altos estándares de seguridad y respaldos automáticos. Además, Tersoft implementa buenas prácticas para proteger tu información.",
+                },
+                {
+                  q: "¿Puedo migrar información de mi sistema actual a Odoo?",
+                  a: "Sí, realizamos migración de datos desde sistemas previos (Excel, otros ERPs, etc.) para que no pierdas tu historial.",
+                },
+                {
+                  q: "¿Qué pasa si necesito una funcionalidad especial?",
+                  a: "Desarrollamos personalizaciones a la medida para adaptar Odoo a los procesos específicos de tu empresa.",
+                },
+                {
+                  q: "¿Qué sucede si tengo dudas durante el proceso?",
+                  a: "Tendrás un consultor asignado y canales de comunicación directa para resolver cualquier inquietud en todo momento.",
+                },
+              ].map((item, idx) => (
+                <Accordion
+                  key={idx}
+                  sx={{ mb: 2, borderRadius: 2, boxShadow: 1 }}
+                >
+                  <AccordionSummary
+                    expandIcon={
+                      <span style={{ fontWeight: 700, fontSize: 22 }}>+</span>
+                    }
+                  >
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {item.q}
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography color="text.secondary">{item.a}</Typography>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </Box>
+          </Container>
+        </Box>
         {/* FOOTER */}
         <Box
           sx={{
