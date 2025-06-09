@@ -13,6 +13,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Card,
 } from "@mui/material";
 import {
   Speed as SpeedIcon,
@@ -142,7 +143,6 @@ export default function LandingLoginPage() {
           </Container>
         </Box>
 
-        {/* CARACTERÍSTICAS DEL COTIZADOR - 2 FILAS DE 4 COLUMNAS, CUADRÍCULA PERFECTA */}
         {/* CARACTERÍSTICAS DEL COTIZADOR - 2 FILAS DE 4 COLUMNAS */}
         <Container maxWidth="lg" sx={{ py: 10 }}>
           <Typography
@@ -312,34 +312,72 @@ export default function LandingLoginPage() {
         </Container>
 
         {/* CÓMO USAR EL COTIZADOR - VIDEO */}
-        <Box sx={{ py: 8, bgcolor: "#f9f9fb", textAlign: "center" }}>
-          <Container maxWidth="md">
-            <Typography variant="h4" gutterBottom>
-              ¿Cómo usar el cotizador?
+        {/* CÓMO USAR EL COTIZADOR - VIDEO */}
+        <Box
+          component="section"
+          sx={{
+            py: 10,
+            bgcolor: "background.paper",
+          }}
+        >
+          <Container maxWidth="lg">
+            <Typography
+              variant="h4"
+              align="center"
+              sx={{
+                fontWeight: 700,
+                mb: 2,
+                color: "#000000", // título en negro
+              }}
+            >
+              Cómo usar el cotizador de Tersoft
             </Typography>
-            <Typography sx={{ mb: 4 }}>
-              En este video te mostramos paso a paso cómo utilizar la plataforma
-              para cotizar tu proyecto de Odoo, desde el inicio de sesión hasta
-              la descarga de tu propuesta personalizada.
+            <Typography
+              variant="subtitle1"
+              align="center"
+              sx={{
+                mb: 4,
+                color: "text.secondary",
+                maxWidth: 600,
+                mx: "auto",
+                lineHeight: 1.6,
+              }}
+            >
+              En este breve video te mostramos cómo navegar por el cotizador,
+              elegir módulos y descargar tu propuesta en PDF en solo unos clics.
             </Typography>
-            <Box sx={{ position: "relative", paddingTop: "56.25%", mb: 2 }}>
-              <iframe
-                src="https://www.youtube.com/embed/1aj7u1fogns"
-                title="Cómo usar el cotizador Tersoft"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: 12,
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+
+            <Card
+              elevation={3}
+              sx={{
+                borderRadius: 2,
+                overflow: "hidden",
+                mx: "auto",
+                maxWidth: 800,
+              }}
+            >
+              <Box
+                sx={{
+                  position: "relative",
+                  pt: "56.25%" /* 16:9 */,
                 }}
-              />
-            </Box>
+              >
+                <iframe
+                  src="https://www.youtube.com/embed/1aj7u1fogns"
+                  title="Cómo usar el cotizador Tersoft"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                  }}
+                />
+              </Box>
+            </Card>
           </Container>
         </Box>
 
