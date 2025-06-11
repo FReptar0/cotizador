@@ -47,6 +47,15 @@ export default function LandingLoginPage() {
 
   const handleGoogle = () => signIn("google");
 
+  // Botón de invitado: crea una sesión fake en localStorage y redirige
+  const handleGuest = () => {
+    // Guardar bandera de invitado
+    if (typeof window !== "undefined") {
+      localStorage.setItem("isGuest", "true");
+    }
+    router.replace("/cotizador");
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Head>
@@ -107,39 +116,78 @@ export default function LandingLoginPage() {
             >
               Empodera tu negocio con información clara y profesional.
             </Typography>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleGoogle}
-              startIcon={
-                <Box
-                  component="img"
-                  src="/google-logo.svg"
-                  alt="Google"
-                  sx={{ width: 24, height: 24 }}
-                />
-              }
+            <Container
+              maxWidth="md"
               sx={{
-                textTransform: "none",
-                justifyContent: "center",
-                fontWeight: "bold",
-                borderRadius: 2,
-                border: "1px solid #ddd",
-                color: "#555",
-                backgroundColor: "#fff",
-                "&:hover": {
-                  backgroundColor: "#f7f7f7",
-                  borderColor: "#ccc",
-                },
-                px: 2,
-                py: 1.5,
-                fontSize: 16,
-                maxWidth: 300,
-                mx: "auto",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
               }}
             >
-              Quiero cotizar ahora
-            </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleGoogle}
+                startIcon={
+                  <Box
+                    component="img"
+                    src="/google-logo.svg"
+                    alt="Google"
+                    sx={{ width: 24, height: 24 }}
+                  />
+                }
+                sx={{
+                  textTransform: "none",
+                  justifyContent: "center",
+                  fontWeight: "bold",
+                  borderRadius: 2,
+                  border: "1px solid #ddd",
+                  color: "#555",
+                  backgroundColor: "#fff",
+                  "&:hover": {
+                    backgroundColor: "#f7f7f7",
+                    borderColor: "#ccc",
+                  },
+                  px: 2,
+                  py: 1.5,
+                  fontSize: 16,
+                  maxWidth: 300,
+                  mx: "auto",
+                  mb: 2, // Espacio entre botones
+                  display: "block",
+                }}
+              >
+                Quiero cotizar ahora
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleGuest}
+                startIcon={<PeopleIcon sx={{ color: "#337ab7", fontSize: 24 }} />}
+                sx={{
+                  textTransform: "none",
+                  justifyContent: "center",
+                  fontWeight: "bold",
+                  borderRadius: 2,
+                  border: "1px solid #ddd",
+                  color: "#555",
+                  backgroundColor: "#fff",
+                  "&:hover": {
+                    backgroundColor: "#f7f7f7",
+                    borderColor: "#ccc",
+                  },
+                  px: 2,
+                  py: 1.5,
+                  fontSize: 16,
+                  maxWidth: 300,
+                  mx: "auto",
+                  mt: 0, // sin margen superior extra
+                  display: "block",
+                }}
+              >
+                Quiero cotizar ahora (Invitado)
+              </Button>
+            </Container>
           </Container>
         </Box>
 
