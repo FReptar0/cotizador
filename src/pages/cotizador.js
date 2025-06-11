@@ -169,6 +169,13 @@ export default function CotizadorPage() {
 
   // 1.a) Hook de redirección (si no hay sesión)
   useEffect(() => {
+    // Permitir acceso si es invitado
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("isGuest") === "true"
+    ) {
+      return;
+    }
     if (status === "unauthenticated") {
       router.replace("/login");
     }
