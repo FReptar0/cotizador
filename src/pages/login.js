@@ -163,7 +163,9 @@ export default function LandingLoginPage() {
                 fullWidth
                 variant="outlined"
                 onClick={handleGuest}
-                startIcon={<PeopleIcon sx={{ color: "#337ab7", fontSize: 24 }} />}
+                startIcon={
+                  <PeopleIcon sx={{ color: "#337ab7", fontSize: 24 }} />
+                }
                 sx={{
                   textTransform: "none",
                   justifyContent: "center",
