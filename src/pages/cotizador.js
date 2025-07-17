@@ -38,6 +38,7 @@ import Chip from "@mui/material/Chip";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import InfoIcon from "@mui/icons-material/Info"; // Import InfoIcon
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import FileSaver from "file-saver"; // Importar FileSaver.js para manejar descargas en móviles
 
 // Configuración del tema con la nueva paleta
 const theme = createTheme({
@@ -272,8 +273,6 @@ export default function CotizadorPage() {
 
   // enviar datos a gemini
   const handleDownloadAndSend = async () => {
-    console.log("Iniciando proceso de descarga y envío...");
-
     // 1) Validaciones básicas
     if (
       !customerName.trim() ||
@@ -281,7 +280,6 @@ export default function CotizadorPage() {
       !customerEmail.trim() ||
       !customerPhone.trim()
     ) {
-      console.log("Validación fallida: faltan datos del cliente.");
       await Swal.fire({
         icon: "warning",
         title: "Faltan datos del cliente",
@@ -290,11 +288,10 @@ export default function CotizadorPage() {
       return;
     }
     if (selectedModules.length === 0) {
-      console.log("Validación fallida: no se seleccionaron módulos.");
       await Swal.fire({
         icon: "warning",
-        title: "No has seleccionado módulos",
-        text: "Debes seleccionar al menos un módulo para generar la cotización.",
+        title: "Módulos no seleccionados",
+        text: "Por favor selecciona al menos un módulo para continuar.",
       });
       return;
     }
@@ -302,11 +299,10 @@ export default function CotizadorPage() {
       ? 0
       : parseInt(numUsuarios);
     if (safeNumUsuarios < 1) {
-      console.log("Validación fallida: número de usuarios insuficiente.");
       await Swal.fire({
         icon: "warning",
-        title: "Licencias insuficientes",
-        text: "Debes especificar al menos una licencia para continuar.",
+        title: "Número de usuarios inválido",
+        text: "Por favor ingresa un número válido de usuarios.",
       });
       return;
     }
@@ -314,112 +310,64 @@ export default function CotizadorPage() {
     setIsDownloading(true);
 
     try {
-      const payload = {
-        customerName,
-        customerCompany,
-        customerEmail,
-        customerPhone,
-        selectedModules,
-        implementationType,
-        nEmpresas,
-        urgenciaDias,
-        importacionDatos,
-        integraciones,
-        integrationPlatform, // <-- nuevo campo
-        personalizaciones,
-        reportes,
-        orderRange,
-        multimoneda,
-        hosteo,
-        fechaInicio,
-        numUsuarios,
-        licenseQuote,
-        quote,
-        estimatedHours,
-        gbStorage,
-        testEnvironments,
-      };
-
-      console.log("Enviando datos para generar PDF...");
-      const pdfRes = await fetch("/api/gemini", {
+      // 2) Generar PDF y enviar correo
+      const response = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          selectedModules,
+          customerName,
+          customerCompany,
+          licenseQuote,
+          quote,
+          hosteo,
+          estimatedHours,
+        }),
       });
-      if (!pdfRes.ok) {
-        const errorText = await pdfRes.text();
-        console.error("Error al generar PDF:", errorText);
-        throw new Error(`Error generando PDF: ${errorText}`);
+
+      if (!response.ok) {
+        throw new Error("Error generando el PDF");
       }
-      console.log("PDF generado exitosamente.");
 
-      const blob = await pdfRes.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Propuesta de Odoo para ${customerCompany}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      console.log("PDF descargado exitosamente.");
+      const pdfBlob = await response.blob();
 
-      console.log("Convirtiendo PDF a Base64 para envío por correo...");
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      const base64 = dataUrl.split(",")[1];
-      console.log("Conversión a Base64 completada.");
+      // Descargar el PDF usando FileSaver.js
+      FileSaver.saveAs(pdfBlob, "Propuesta-Odoo.pdf");
 
-      console.log("Enviando correo con PDF adjunto...");
-      const mailRes = await fetch("/api/send-email", {
+      // Enviar correo
+      const emailResponse = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerEmail,
           customerName,
           customerCompany,
-          pdfBase64: base64,
+          pdfBase64: await pdfBlob
+            .arrayBuffer()
+            .then((buffer) =>
+              btoa(String.fromCharCode(...new Uint8Array(buffer)))
+            ),
         }),
       });
-      if (!mailRes.ok) {
-        const errorText = await mailRes.text();
-        console.error("Error al enviar correo:", errorText);
-        throw new Error(`Error enviando correo: ${errorText}`);
-      }
-      console.log("Correo enviado exitosamente.");
 
-      console.log("Guardando datos en Google Sheets...");
-      const submitRes = await fetch("/api/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      if (!emailResponse.ok) {
+        throw new Error("Error enviando el correo");
+      }
+
+      await Swal.fire({
+        icon: "success",
+        title: "¡Éxito!",
+        text: "El PDF se descargó y el correo fue enviado correctamente.",
       });
-      if (!submitRes.ok) {
-        const errorText = await submitRes.text();
-        console.error("Error al guardar en Google Sheets:", errorText);
-        throw new Error(`Error guardando en Google Sheets: ${errorText}`);
-      }
-      console.log("Datos guardados exitosamente en Google Sheets.");
-
-      await Swal.fire(
-        "¡Listo!",
-        "PDF descargado y enviado por correo.",
-        "success"
-      );
     } catch (error) {
       console.error("Error en handleDownloadAndSend:", error);
-      await Swal.fire(
-        "Error",
-        `Ocurrió un problema: ${error.message}`,
-        "error"
-      );
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "Ocurrió un error inesperado.",
+      });
     } finally {
       setIsDownloading(false);
-      console.log("Proceso de descarga y envío finalizado.");
     }
   };
 
