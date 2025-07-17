@@ -272,6 +272,8 @@ export default function CotizadorPage() {
 
   // enviar datos a gemini
   const handleDownloadAndSend = async () => {
+    console.log("Iniciando proceso de descarga y envío...");
+
     // 1) Validaciones básicas
     if (
       !customerName.trim() ||
@@ -279,6 +281,7 @@ export default function CotizadorPage() {
       !customerEmail.trim() ||
       !customerPhone.trim()
     ) {
+      console.log("Validación fallida: faltan datos del cliente.");
       await Swal.fire({
         icon: "warning",
         title: "Faltan datos del cliente",
@@ -287,6 +290,7 @@ export default function CotizadorPage() {
       return;
     }
     if (selectedModules.length === 0) {
+      console.log("Validación fallida: no se seleccionaron módulos.");
       await Swal.fire({
         icon: "warning",
         title: "No has seleccionado módulos",
@@ -298,6 +302,7 @@ export default function CotizadorPage() {
       ? 0
       : parseInt(numUsuarios);
     if (safeNumUsuarios < 1) {
+      console.log("Validación fallida: número de usuarios insuficiente.");
       await Swal.fire({
         icon: "warning",
         title: "Licencias insuficientes",
@@ -335,7 +340,7 @@ export default function CotizadorPage() {
         testEnvironments,
       };
 
-      // 2) Generar y descargar el PDF
+      console.log("Enviando datos para generar PDF...");
       const pdfRes = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -343,8 +348,11 @@ export default function CotizadorPage() {
       });
       if (!pdfRes.ok) {
         const errorText = await pdfRes.text();
+        console.error("Error al generar PDF:", errorText);
         throw new Error(`Error generando PDF: ${errorText}`);
       }
+      console.log("PDF generado exitosamente.");
+
       const blob = await pdfRes.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -354,9 +362,9 @@ export default function CotizadorPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      console.log("PDF descargado exitosamente.");
 
-      // 3) Enviar el PDF por correo (uso mismo blob)
-      // Convertimos blob a Base64
+      console.log("Convirtiendo PDF a Base64 para envío por correo...");
       const dataUrl = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
@@ -364,7 +372,9 @@ export default function CotizadorPage() {
         reader.readAsDataURL(blob);
       });
       const base64 = dataUrl.split(",")[1];
+      console.log("Conversión a Base64 completada.");
 
+      console.log("Enviando correo con PDF adjunto...");
       const mailRes = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -377,10 +387,12 @@ export default function CotizadorPage() {
       });
       if (!mailRes.ok) {
         const errorText = await mailRes.text();
+        console.error("Error al enviar correo:", errorText);
         throw new Error(`Error enviando correo: ${errorText}`);
       }
+      console.log("Correo enviado exitosamente.");
 
-      // 4) Guardar respuestas en Google Sheets
+      console.log("Guardando datos en Google Sheets...");
       const submitRes = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -388,8 +400,10 @@ export default function CotizadorPage() {
       });
       if (!submitRes.ok) {
         const errorText = await submitRes.text();
+        console.error("Error al guardar en Google Sheets:", errorText);
         throw new Error(`Error guardando en Google Sheets: ${errorText}`);
       }
+      console.log("Datos guardados exitosamente en Google Sheets.");
 
       await Swal.fire(
         "¡Listo!",
@@ -405,6 +419,7 @@ export default function CotizadorPage() {
       );
     } finally {
       setIsDownloading(false);
+      console.log("Proceso de descarga y envío finalizado.");
     }
   };
 
