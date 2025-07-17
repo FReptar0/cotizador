@@ -38,7 +38,6 @@ import Chip from "@mui/material/Chip";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import InfoIcon from "@mui/icons-material/Info"; // Import InfoIcon
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import FileSaver from "file-saver"; // Importar FileSaver.js para manejar descargas en móviles
 
 // Configuración del tema con la nueva paleta
 const theme = createTheme({
@@ -290,8 +289,8 @@ export default function CotizadorPage() {
     if (selectedModules.length === 0) {
       await Swal.fire({
         icon: "warning",
-        title: "Módulos no seleccionados",
-        text: "Por favor selecciona al menos un módulo para continuar.",
+        title: "No has seleccionado módulos",
+        text: "Debes seleccionar al menos un módulo para generar la cotización.",
       });
       return;
     }
@@ -301,8 +300,8 @@ export default function CotizadorPage() {
     if (safeNumUsuarios < 1) {
       await Swal.fire({
         icon: "warning",
-        title: "Número de usuarios inválido",
-        text: "Por favor ingresa un número válido de usuarios.",
+        title: "Licencias insuficientes",
+        text: "Debes especificar al menos una licencia para continuar.",
       });
       return;
     }
@@ -310,62 +309,92 @@ export default function CotizadorPage() {
     setIsDownloading(true);
 
     try {
-      // 2) Generar PDF y enviar correo
-      const response = await fetch("/api/gemini", {
+      const payload = {
+        customerName,
+        customerCompany,
+        customerEmail,
+        customerPhone,
+        selectedModules,
+        implementationType,
+        nEmpresas,
+        urgenciaDias,
+        importacionDatos,
+        integraciones,
+        integrationPlatform, // <-- nuevo campo
+        personalizaciones,
+        reportes,
+        orderRange,
+        multimoneda,
+        hosteo,
+        fechaInicio,
+        numUsuarios,
+        licenseQuote,
+        quote,
+        estimatedHours,
+        gbStorage,
+        testEnvironments,
+      };
+
+      // 2) Generar y descargar el PDF
+      const pdfRes = await fetch("/api/gemini", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          selectedModules,
-          customerName,
-          customerCompany,
-          licenseQuote,
-          quote,
-          hosteo,
-          estimatedHours,
-        }),
+        body: JSON.stringify(payload),
       });
+      if (!pdfRes.ok) throw new Error(`Error generando PDF (${pdfRes.status})`);
+      const blob = await pdfRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Propuesta de Odoo para ${customerCompany}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
 
-      if (!response.ok) {
-        throw new Error("Error generando el PDF");
-      }
+      // 3) Enviar el PDF por correo (uso mismo blob)
+      // Convertimos blob a Base64
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const base64 = dataUrl.split(",")[1];
 
-      const pdfBlob = await response.blob();
-
-      // Descargar el PDF usando FileSaver.js
-      FileSaver.saveAs(pdfBlob, "Propuesta-Odoo.pdf");
-
-      // Enviar correo
-      const emailResponse = await fetch("/api/send-email", {
+      const mailRes = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerEmail,
           customerName,
           customerCompany,
-          pdfBase64: await pdfBlob
-            .arrayBuffer()
-            .then((buffer) =>
-              btoa(String.fromCharCode(...new Uint8Array(buffer)))
-            ),
+          pdfBase64: base64,
         }),
       });
+      const mailText = await mailRes.text();
 
-      if (!emailResponse.ok) {
-        throw new Error("Error enviando el correo");
-      }
+      if (!mailRes.ok) throw new Error(mailText);
 
-      await Swal.fire({
-        icon: "success",
-        title: "¡Éxito!",
-        text: "El PDF se descargó y el correo fue enviado correctamente.",
+      // 4) Guardar respuestas en Google Sheets
+      await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+
+      await Swal.fire(
+        "¡Listo!",
+        "PDF descargado y enviado por correo.",
+        "success"
+      );
     } catch (error) {
-      console.error("Error en handleDownloadAndSend:", error);
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message || "Ocurrió un error inesperado.",
-      });
+      console.error(error);
+      await Swal.fire(
+        "Error",
+        "Ocurrió un problema descargando o enviando la propuesta.",
+        "error"
+      );
     } finally {
       setIsDownloading(false);
     }

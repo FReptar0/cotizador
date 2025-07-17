@@ -2,7 +2,8 @@
 import fs from "fs";
 import path from "path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { setTimeout } from "timers/promises"; // Importar para manejar timeouts
+// Cambio: utilizamos fetch en Node.js para cargar imágenes desde /public
+// (en Next.js 13+ fetch es global; si usas versión anterior, instala node-fetch)
 
 //
 // Función auxiliar: dibuja cada línea detectando **texto** y poniéndolo en negrita
@@ -42,6 +43,7 @@ export default async function handler(req, res) {
       quote,
       hosteo,
       estimatedHours,
+      // ... (otros campos que ya no se usan en la propuesta)
     } = req.body;
 
     // 3) Calcular días de entrega
@@ -144,13 +146,7 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
     // 6) Inicializamos Gemini y pedimos la generación
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    // Agregar timeout explícito para la llamada a Gemini
-    const result = await Promise.race([
-      model.generateContent(prompt),
-      setTimeout(15000, Promise.reject(new Error("Timeout en la API de Gemini"))),
-    ]);
-
+    const result = await model.generateContent(prompt);
     const text = (await result.response).text();
 
     // quitar dobles asteriscos y poner asteriscos simples
