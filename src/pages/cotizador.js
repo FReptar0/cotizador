@@ -1534,7 +1534,7 @@ export default function CotizadorPage() {
             {/* Costo de implementación */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="h6" // Make text larger
+                variant="h5" // Make text larger
                 fontWeight="bold"
                 color="#007BFF" // Use the blue color
                 sx={{ mb: 1 }}
@@ -1545,7 +1545,7 @@ export default function CotizadorPage() {
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {quote.toLocaleString("en-US")}
+                MX$ {formatPrice(quote)}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 *Este costo es una aproximación y puede variar según los
@@ -1559,7 +1559,7 @@ export default function CotizadorPage() {
             {/* Costo anual de licencias */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="h6"
+                variant="h5"
                 fontWeight="bold"
                 color="#007BFF"
                 sx={{ mb: 1 }}
@@ -1570,18 +1570,14 @@ export default function CotizadorPage() {
               {/* Precio SIN Descuento */}
               <Typography variant="body2" color="text.primary">
                 <strong>Precio regular:</strong> MX${" "}
-                {licenseQuoteNoDisc.toLocaleString("en-US")}
+                {formatPrice(licenseQuoteNoDisc)}
               </Typography>
 
               <Typography
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {licenseQuote.toLocaleString("en-US")}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                El costo se paga directamente a odoo
+                MX$ {formatPrice(licenseQuote)}
               </Typography>
             </Box>
 
@@ -1590,9 +1586,9 @@ export default function CotizadorPage() {
             {/* Costo total */}
             <Box sx={{ mb: 2 }}>
               <Typography
-                variant="h6" // Make text larger
+                variant="h5" // Make text larger
                 fontWeight="bold"
-                color="#007BFF" // Use the blue color
+                color="#a4478d" // Use the blue color
                 sx={{ mb: 1 }}
               >
                 Costo total:
@@ -1602,9 +1598,9 @@ export default function CotizadorPage() {
                 sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
                 MX${" "}
-                {(
+                {formatPrice(
                   parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
-                ).toLocaleString("en-US")}
+                )}
               </Typography>
             </Box>
 
