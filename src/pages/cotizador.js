@@ -341,7 +341,10 @@ export default function CotizadorPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!pdfRes.ok) throw new Error(`Error generando PDF (${pdfRes.status})`);
+      if (!pdfRes.ok) {
+        const errorText = await pdfRes.text();
+        throw new Error(`Error generando PDF: ${errorText}`);
+      }
       const blob = await pdfRes.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -372,16 +375,21 @@ export default function CotizadorPage() {
           pdfBase64: base64,
         }),
       });
-      const mailText = await mailRes.text();
-
-      if (!mailRes.ok) throw new Error(mailText);
+      if (!mailRes.ok) {
+        const errorText = await mailRes.text();
+        throw new Error(`Error enviando correo: ${errorText}`);
+      }
 
       // 4) Guardar respuestas en Google Sheets
-      await fetch("/api/submit", {
+      const submitRes = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      if (!submitRes.ok) {
+        const errorText = await submitRes.text();
+        throw new Error(`Error guardando en Google Sheets: ${errorText}`);
+      }
 
       await Swal.fire(
         "¡Listo!",
@@ -389,10 +397,10 @@ export default function CotizadorPage() {
         "success"
       );
     } catch (error) {
-      console.error(error);
+      console.error("Error en handleDownloadAndSend:", error);
       await Swal.fire(
         "Error",
-        "Ocurrió un problema descargando o enviando la propuesta.",
+        `Ocurrió un problema: ${error.message}`,
         "error"
       );
     } finally {
