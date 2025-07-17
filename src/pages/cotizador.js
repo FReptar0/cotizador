@@ -38,6 +38,7 @@ import Chip from "@mui/material/Chip";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import InfoIcon from "@mui/icons-material/Info"; // Import InfoIcon
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { isMobile } from "react-device-detect";
 
 // Configuración del tema con la nueva paleta
 const theme = createTheme({
@@ -272,6 +273,28 @@ export default function CotizadorPage() {
 
   // enviar datos a gemini
   const handleDownloadAndSend = async () => {
+    setIsDownloading(true);
+
+    try {
+      if (isMobile) {
+        // Enviar el PDF por correo directamente en dispositivos móviles
+        await sendEmailWithPDF();
+        alert("El PDF ha sido enviado a su correo electrónico.");
+      } else {
+        // Descargar y enviar el PDF en dispositivos de escritorio
+        await generateAndDownloadPDF();
+        await sendEmailWithPDF();
+        alert("El PDF ha sido descargado y enviado a su correo electrónico.");
+      }
+    } catch (error) {
+      console.error("Error al procesar la propuesta:", error);
+      alert("Error al procesar la propuesta. Por favor, inténtelo nuevamente.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const generateAndDownloadPDF = async () => {
     // 1) Validaciones básicas
     if (
       !customerName.trim() ||
@@ -397,6 +420,38 @@ export default function CotizadorPage() {
       );
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const sendEmailWithPDF = async () => {
+    try {
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerEmail,
+          customerName,
+          customerCompany,
+          pdfBase64: generatedPdfBase64, // Asegúrate de que esta variable contenga el PDF generado en base64
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al enviar el correo");
+      }
+
+      await Swal.fire(
+        "¡Listo!",
+        "El PDF ha sido enviado a su correo electrónico.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error al enviar el correo:", error);
+      await Swal.fire(
+        "Error",
+        "Ocurrió un problema enviando el correo.",
+        "error"
+      );
     }
   };
 
