@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
+  // const [isClient, setIsClient] = useState(false);
 
   // Extraemos `session` si viene en pageProps
   const { session, ...restPageProps } = pageProps;
@@ -22,30 +22,9 @@ export default function App({ Component, pageProps }) {
     router.push("/login");
   };
 
-  // ElevenLabs: solo en /cotizador y /diagnostico-inteligente
-  useEffect(() => {
-    setIsClient(true);
-    if (["/cotizador", "/diagnostico-inteligente"].includes(router.pathname)) {
-      if (!document.getElementById("elevenlabs-widget-script")) {
-        const script = document.createElement("script");
-        script.id = "elevenlabs-widget-script";
-        script.src = "https://elevenlabs.io/convai-widget/index.js";
-        script.async = true;
-        script.type = "text/javascript";
-        document.head.appendChild(script);
-      }
-    }
-  }, [router.pathname]);
+  // ElevenLabs widget removed
 
-  // Renderiza el widget solo en las rutas indicadas
-  const elevenLabsWidget =
-    isClient &&
-    ["/cotizador", "/diagnostico-inteligente"].includes(router.pathname)
-      ? createPortal(
-          <elevenlabs-convai agent-id="agent_01jw1xmts8em4rgb4gwsjr35an"></elevenlabs-convai>,
-          document.body
-        )
-      : null;
+  // ElevenLabs widget removed
 
   // Contenido de la app, con o sin Layout
   const appContent = noLayoutRoutes.includes(router.pathname) ? (
@@ -56,10 +35,5 @@ export default function App({ Component, pageProps }) {
     </Layout>
   );
 
-  return (
-    <SessionProvider session={session}>
-      {appContent}
-      {elevenLabsWidget}
-    </SessionProvider>
-  );
+  return <SessionProvider session={session}>{appContent}</SessionProvider>;
 }
