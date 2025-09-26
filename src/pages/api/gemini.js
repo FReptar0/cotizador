@@ -2,16 +2,11 @@
 import fs from "fs";
 import path from "path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-// Cambio: utilizamos fetch en Node.js para cargar imágenes desde /public
-// (en Next.js 13+ fetch es global; si usas versión anterior, instala node-fetch)
 
-//
 // Función auxiliar: dibuja cada línea detectando **texto** y poniéndolo en negrita
-//
 function renderLineWithBold(doc, line, marginX, posY) {
   let x = marginX;
   const parts = line.split(/(\*\*[^*]+\*\*)/g);
-  fjp;
   for (const part of parts) {
     if (part.startsWith("**") && part.endsWith("**")) {
       const text = part.slice(2, -2);
@@ -28,7 +23,8 @@ function renderLineWithBold(doc, line, marginX, posY) {
 
 export default async function handler(req, res) {
   console.log("➡️ NODE_ENV:", process.env.NODE_ENV);
-  console.log("🔑 GEMINI_API_KEY:", process.env.GEMINI_API_KEY);
+  // No imprimas la API key en claro
+  console.log("🔑 GEMINI_API_KEY set:", !!process.env.GEMINI_API_KEY);
 
   // 1) Solo aceptamos POST
   if (req.method !== "POST") {
@@ -148,11 +144,12 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
 
     // 6) Inicializamos Gemini y pedimos la generación
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Modelo actualizado (evita 1.5-flash)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const text = (await result.response).text();
 
-    // quitar dobles asteriscos y poner asteriscos simples
+    // quitar dobles asteriscos y poner asteriscos simples como viñeta
     let processedText = text.replace(/\*\*/g, "");
     processedText = processedText.replace(/\*/g, "•");
 
@@ -215,7 +212,7 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
           y = marginY;
         }
         if (/^\d+\.\s/.test(chunk)) {
-          // títulos en negrita y justificados
+          // títulos en negrita
           doc.setFont("helvetica", "bold");
         } else {
           // texto normal
@@ -228,8 +225,6 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
         y += lineHeight;
       }
     }
-
-    // 9) Devolvemos el PDF al navegador
 
     // --- NUEVO BLOQUE: Sección de aceptación centrada con línea para firma ---
     if (y > pageHeight - marginY - 5 * lineHeight) {
@@ -261,7 +256,7 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=\"Propuesta de Odoo para ${customerCompany}.pdf\"`
+      `attachment; filename="Propuesta de Odoo para ${customerCompany}.pdf"`
     );
     res.send(Buffer.from(pdfArray));
   } catch (error) {
