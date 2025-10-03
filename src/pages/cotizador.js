@@ -156,6 +156,10 @@ export default function CotizadorPage() {
   // **Nuevo estado** para la pregunta de catálogo de cuentas
   const [tienenCatalogoCuentas, setTienenCatalogoCuentas] = useState("sí");
 
+  // **Nuevo estado** para el tipo de moneda
+  const [tipoMoneda, setTipoMoneda] = useState("MXN");
+  const exchangeRate = 19; // 19 MXN = 1 USD
+
   // Menú de usuario (si se usa en esta página)
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -255,6 +259,7 @@ export default function CotizadorPage() {
     gbStorage,
     testEnvironments,
     tienenCatalogoCuentas, // ¡No olvides añadirlo a las deps!
+    tipoMoneda, // Agregar dependencia de tipo de moneda
   ]);
 
   // Manejo de cambio en módulos
@@ -333,6 +338,8 @@ export default function CotizadorPage() {
         estimatedHours,
         gbStorage,
         testEnvironments,
+        tipoMoneda, // <-- nuevo campo para tipo de moneda
+        exchangeRate, // <-- tipo de cambio
       };
 
       // 2) Generar y descargar el PDF
@@ -412,6 +419,19 @@ export default function CotizadorPage() {
     return number
       .toFixed(2) // dos decimales con punto
       .replace(/\B(?=(\d{3})+(?!\d))/g, ","); // miles con coma
+  };
+
+  // Convierte precio según la moneda seleccionada
+  const convertPrice = (mxnPrice) => {
+    if (tipoMoneda === "USD") {
+      return mxnPrice / exchangeRate;
+    }
+    return mxnPrice;
+  };
+
+  // Obtiene el símbolo de la moneda
+  const getCurrencySymbol = () => {
+    return tipoMoneda === "USD" ? "USD $" : "MX$";
   };
 
   return (
@@ -531,6 +551,46 @@ export default function CotizadorPage() {
                       }
                     }}
                   />
+                </Box>
+
+                {/* Selector de tipo de moneda */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    color="text.primary"
+                    sx={{ mb: 1 }}
+                  >
+                    Tipo de divisa
+                  </Typography>
+                  <FormControl fullWidth variant="outlined">
+                    <InputLabel id="moneda-label" color="primary">
+                      Selecciona la moneda
+                    </InputLabel>
+                    <Select
+                      labelId="moneda-label"
+                      value={tipoMoneda}
+                      onChange={(e) => setTipoMoneda(e.target.value)}
+                      label="Selecciona la moneda"
+                      color="primary"
+                      MenuProps={{
+                        disableScrollLock: true,
+                        PaperProps: { style: { maxHeight: 240 } },
+                      }}
+                    >
+                      <MenuItem value="MXN">Pesos Mexicanos (MXN)</MenuItem>
+                      <MenuItem value="USD">Dólares Americanos (USD)</MenuItem>
+                    </Select>
+                  </FormControl>
+                  {tipoMoneda === "USD" && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1 }}
+                    >
+                      Tipo de cambio: 19 MXN = 1 USD
+                    </Typography>
+                  )}
                 </Box>
 
                 {/* Subir transcripción (archivo TXT) */}
@@ -1405,7 +1465,8 @@ export default function CotizadorPage() {
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {formatPrice(quote)}
+                {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(parseFloat(quote || 0)))}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 *Este costo es una aproximación y puede variar según los
@@ -1429,15 +1490,16 @@ export default function CotizadorPage() {
 
               {/* Precio SIN Descuento */}
               <Typography variant="body2" color="text.primary">
-                <strong>Precio regular:</strong> MX${" "}
-                {formatPrice(licenseQuoteNoDisc)}
+                <strong>Precio regular:</strong> {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(parseFloat(licenseQuoteNoDisc || 0)))}
               </Typography>
 
               <Typography
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {formatPrice(licenseQuote)}
+                {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(parseFloat(licenseQuote || 0)))}
               </Typography>
             </Box>
 
@@ -1457,9 +1519,11 @@ export default function CotizadorPage() {
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
-                MX${" "}
+                {getCurrencySymbol()}{" "}
                 {formatPrice(
-                  parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
+                  convertPrice(
+                    parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
+                  )
                 )}
               </Typography>
             </Box>
@@ -1545,7 +1609,8 @@ export default function CotizadorPage() {
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {quote.toLocaleString("en-US")}
+                {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(parseFloat(quote || 0)))}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 *Este costo es una aproximación y puede variar según los
@@ -1569,15 +1634,16 @@ export default function CotizadorPage() {
 
               {/* Precio SIN Descuento */}
               <Typography variant="body2" color="text.primary">
-                <strong>Precio regular:</strong> MX${" "}
-                {licenseQuoteNoDisc.toLocaleString("en-US")}
+                <strong>Precio regular:</strong> {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(parseFloat(licenseQuoteNoDisc || 0)))}
               </Typography>
 
               <Typography
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
-                MX$ {licenseQuote.toLocaleString("en-US")}
+                {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(parseFloat(licenseQuote || 0)))}
               </Typography>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -1601,10 +1667,12 @@ export default function CotizadorPage() {
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
-                MX${" "}
-                {(
-                  parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
-                ).toLocaleString("en-US")}
+                {getCurrencySymbol()}{" "}
+                {formatPrice(
+                  convertPrice(
+                    parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
+                  )
+                )}
               </Typography>
             </Box>
 
