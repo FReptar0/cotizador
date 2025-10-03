@@ -42,11 +42,36 @@ export default async function handler(req, res) {
       quote,
       hosteo,
       estimatedHours,
+      tipoMoneda = "MXN", // nuevo campo para tipo de moneda
+      exchangeRate = 19, // nuevo campo para tipo de cambio
       // ... (otros campos que ya no se usan en la propuesta)
     } = req.body;
 
     // 3) Calcular días de entrega
     const deliveryDays = Math.ceil(estimatedHours / 8);
+
+    // 3.1) Funciones para manejo de moneda
+    const convertPrice = (mxnPrice) => {
+      if (tipoMoneda === "USD") {
+        return mxnPrice / exchangeRate;
+      }
+      return mxnPrice;
+    };
+
+    const getCurrencySymbol = () => {
+      return tipoMoneda === "USD" ? "USD $" : "MX$";
+    };
+
+    const formatPrice = (value) => {
+      const number = typeof value === "string" ? parseFloat(value) : value;
+      if (isNaN(number)) return "0.00";
+      return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
+
+    // 3.2) Convertir precios según la moneda seleccionada
+    const convertedLicenseQuote = convertPrice(parseFloat(licenseQuote || 0));
+    const convertedImplementationQuote = convertPrice(parseFloat(quote || 0));
+    const currencySymbol = getCurrencySymbol();
 
     // 4) Calculamos la fecha de hoy en español
     const today = new Date().toLocaleDateString("es-ES", {
@@ -120,8 +145,17 @@ Fecha: ${today}
 8. Costos y Condiciones de Pago
 
     - Escribir "Los costos del proyecto son los siguientes:
-    - Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
-    - Implementación: MX$ ${quote} + IVA (con tersoft)
+    - Costo de licencias: ${currencySymbol} ${formatPrice(
+      convertedLicenseQuote
+    )} (directamente con Odoo)
+    - Implementación: ${currencySymbol} ${formatPrice(
+      convertedImplementationQuote
+    )} + IVA (con tersoft)${
+      tipoMoneda === "USD"
+        ? `
+    - Tipo de cambio utilizado: ${exchangeRate} MXN = 1 USD`
+        : ""
+    }
     - Condiciones de pago: 100% al finalizar la implementación.
 9. Conclusión
    -  escribir "La implementacion de odoo proporcionara a ${customerCompany} una plataforma integrada y eficiente para gestionar sus operaciones. Con la implementación de Odoo, ${customerCompany} podrá optimizar sus procesos, mejorar la colaboración entre departamentos y tomar decisiones informadas basadas en datos en tiempo real. Estamos comprometidos a brindar un servicio de alta calidad y a garantizar el éxito de esta implementación."
@@ -136,8 +170,12 @@ Fecha: ${today}
   TERSOFT
     
 Datos para la sección 8:
-- Costo de licencias: MX$ ${licenseQuote} (directamente con Odoo)
-- Implementación: MX$ ${quote} + IVA (con tersoft)
+- Costo de licencias: ${currencySymbol} ${formatPrice(
+      convertedLicenseQuote
+    )} (directamente con Odoo)
+- Implementación: ${currencySymbol} ${formatPrice(
+      convertedImplementationQuote
+    )} + IVA (con tersoft)
 
 Genera el contenido en español sin faltas de ortografia, siguiendo exactamente esas nueve secciones y nada más.
 `;
