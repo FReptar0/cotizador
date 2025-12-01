@@ -347,7 +347,7 @@ export default function CotizadorPage() {
         urgenciaDias,
         importacionDatos,
         integraciones,
-        integrationPlatform, // <-- nuevo campo
+        integrationPlatform,
         personalizaciones,
         reportes,
         orderRange,
@@ -360,70 +360,54 @@ export default function CotizadorPage() {
         estimatedHours,
         gbStorage,
         testEnvironments,
-        tipoMoneda, // <-- nuevo campo para tipo de moneda
-        exchangeRate, // <-- tipo de cambio
+        tipoMoneda,
+        exchangeRate,
       };
 
-      // 2) Generar y descargar el PDF
-      const pdfRes = await fetch("/api/gemini", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!pdfRes.ok) throw new Error(`Error generando PDF (${pdfRes.status})`);
-      const blob = await pdfRes.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Propuesta de Odoo para ${customerCompany}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      // 3) Enviar el PDF por correo (uso mismo blob)
-      // Convertimos blob a Base64
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      const base64 = dataUrl.split(",")[1];
-
-      const mailRes = await fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerEmail,
-          customerName,
-          customerCompany,
-          pdfBase64: base64,
-        }),
-      });
-      const mailText = await mailRes.text();
-
-      if (!mailRes.ok) throw new Error(mailText);
-
-      // 4) Guardar respuestas en Google Sheets
-      await fetch("/api/submit", {
+      // ✅ NUEVO: Solo 1 fetch al endpoint optimizado
+      const response = await fetch("/api/cotizacion/iniciar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      await Swal.fire(
-        "¡Listo!",
-        "PDF descargado y enviado por correo.",
-        "success"
-      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Error del servidor (${response.status})`
+        );
+      }
+
+      const data = await response.json();
+
+      // Mostrar mensaje de éxito
+      await Swal.fire({
+        icon: "success",
+        title: "¡Cotización registrada!",
+        html: `
+        <p>Hemos guardado tu información exitosamente.</p>
+        <p><strong>Recibirás tu propuesta en PDF por correo en los próximos 2-3 minutos.</strong></p>
+      
+      `,
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#a4478d",
+      });
+
+      // Opcional: Limpiar el formulario después del éxito
+      // setCustomerName("");
+      // setCustomerCompany("");
+      // setCustomerEmail("");
+      // setCustomerPhone("");
+      // setSelectedModules([]);
+      // etc...
     } catch (error) {
-      console.error(error);
-      await Swal.fire(
-        "Error",
-        "Ocurrió un problema descargando o enviando la propuesta.",
-        "error"
-      );
+      console.error("Error:", error);
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un problema al procesar tu cotización. Por favor intenta nuevamente o contáctanos directamente.",
+        confirmButtonColor: "#d33",
+      });
     } finally {
       setIsDownloading(false);
     }
