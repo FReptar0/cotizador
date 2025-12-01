@@ -226,15 +226,37 @@ export default function CotizadorPage() {
     }
     setQuote(costoImplementacion.toFixed(2));
 
-    // Costo anual de licencias + hosteo
-    const costPerUserYear = 4080;
-    const firstYearDiscount = 0.194117; // 19 de descuento en el primer año con odoo
-
-    const costoLicenciasSinDesc = safeNumUsuarios * costPerUserYear;
-    const costoLicenciasPrimerAnio =
-      costoLicenciasSinDesc * (1 - firstYearDiscount);
-
+    // Costo anual de licencias + hosteo según la versión seleccionada
+    let costPerUserYear = 0;
+    let firstYearDiscount = 0;
+    let costoLicenciasSinDesc = 0;
+    let costoLicenciasPrimerAnio = 0;
     let hostingCostAnnual = 0;
+
+    if (hosteo === "Odoo Online") {
+      // Odoo Online: 228 por mes por usuario con descuento de 48 al mes
+      const costPerUserMonth = 228;
+      const discountPerUserMonth = 48;
+      const finalCostPerUserMonth = costPerUserMonth - discountPerUserMonth; // 180 por mes
+      costPerUserYear = finalCostPerUserMonth * 12; // 2160 anual
+      costoLicenciasSinDesc = safeNumUsuarios * (costPerUserMonth * 12); // Sin descuento: 2736
+      costoLicenciasPrimerAnio = safeNumUsuarios * costPerUserYear; // Con descuento: 2160
+    } else if (hosteo === "Odoo Personalizado") {
+      // Odoo personalizado: 340 por mes por usuario con descuento de 66 al mes
+      const costPerUserMonth = 340;
+      const discountPerUserMonth = 66;
+      const finalCostPerUserMonth = costPerUserMonth - discountPerUserMonth; // 274 por mes
+      costPerUserYear = finalCostPerUserMonth * 12; // 3288 anual
+      costoLicenciasSinDesc = safeNumUsuarios * (costPerUserMonth * 12); // Sin descuento: 4080
+      costoLicenciasPrimerAnio = safeNumUsuarios * costPerUserYear; // Con descuento: 3288
+    } else if (hosteo === "Odoo Community") {
+      // Odoo Community: 30% del costo de Odoo Personalizado
+      const odooPersonalizadoCost = 3288;
+      costPerUserYear = odooPersonalizadoCost * 0.3; // 986.4 anual
+      costoLicenciasSinDesc = safeNumUsuarios * costPerUserYear;
+      costoLicenciasPrimerAnio = costoLicenciasSinDesc; // Sin descuento adicional
+    }
+
     if (hosteo === "Odoo.sh") {
       const monthlyHosting =
         safeNumUsuarios * 1152 + safeGbStorage * 4 + safeTestEnvironments * 288;
@@ -325,7 +347,7 @@ export default function CotizadorPage() {
         urgenciaDias,
         importacionDatos,
         integraciones,
-        integrationPlatform, // <-- nuevo campo
+        integrationPlatform,
         personalizaciones,
         reportes,
         orderRange,
@@ -338,70 +360,54 @@ export default function CotizadorPage() {
         estimatedHours,
         gbStorage,
         testEnvironments,
-        tipoMoneda, // <-- nuevo campo para tipo de moneda
-        exchangeRate, // <-- tipo de cambio
+        tipoMoneda,
+        exchangeRate,
       };
 
-      // 2) Generar y descargar el PDF
-      const pdfRes = await fetch("/api/gemini", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!pdfRes.ok) throw new Error(`Error generando PDF (${pdfRes.status})`);
-      const blob = await pdfRes.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Propuesta de Odoo para ${customerCompany}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      // 3) Enviar el PDF por correo (uso mismo blob)
-      // Convertimos blob a Base64
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      const base64 = dataUrl.split(",")[1];
-
-      const mailRes = await fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerEmail,
-          customerName,
-          customerCompany,
-          pdfBase64: base64,
-        }),
-      });
-      const mailText = await mailRes.text();
-
-      if (!mailRes.ok) throw new Error(mailText);
-
-      // 4) Guardar respuestas en Google Sheets
-      await fetch("/api/submit", {
+      // ✅ NUEVO: Solo 1 fetch al endpoint optimizado
+      const response = await fetch("/api/cotizacion/iniciar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      await Swal.fire(
-        "¡Listo!",
-        "PDF descargado y enviado por correo.",
-        "success"
-      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Error del servidor (${response.status})`
+        );
+      }
+
+      const data = await response.json();
+
+      // Mostrar mensaje de éxito
+      await Swal.fire({
+        icon: "success",
+        title: "¡Cotización registrada!",
+        html: `
+        <p>Hemos guardado tu información exitosamente.</p>
+        <p><strong>Recibirás tu propuesta en PDF por correo en los próximos 2-3 minutos.</strong></p>
+      
+      `,
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#a4478d",
+      });
+
+      // Opcional: Limpiar el formulario después del éxito
+      // setCustomerName("");
+      // setCustomerCompany("");
+      // setCustomerEmail("");
+      // setCustomerPhone("");
+      // setSelectedModules([]);
+      // etc...
     } catch (error) {
-      console.error(error);
-      await Swal.fire(
-        "Error",
-        "Ocurrió un problema descargando o enviando la propuesta.",
-        "error"
-      );
+      console.error("Error:", error);
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un problema al procesar tu cotización. Por favor intenta nuevamente o contáctanos directamente.",
+        confirmButtonColor: "#d33",
+      });
     } finally {
       setIsDownloading(false);
     }
@@ -713,16 +719,18 @@ export default function CotizadorPage() {
                     color="text.primary"
                     sx={{ mb: 1 }}
                   >
-                    Odoo online es la versión más popular ya que incluye
-                    alojamiento en la nube y todas las aplicaciones nativas que
-                    su empresa necesita
+                    Selecciona la versión de Odoo que mejor se adapte a las
+                    necesidades de tu empresa
                   </Typography>
                   <FormControl fullWidth variant="outlined">
-                    <InputLabel id="hosteo-label" color="primary"></InputLabel>
+                    <InputLabel id="hosteo-label" color="primary">
+                      Versión de Odoo
+                    </InputLabel>
                     <Select
                       labelId="hosteo-label"
                       value={hosteo}
                       onChange={(e) => setHosteo(e.target.value)}
+                      label="Versión de Odoo"
                       color="primary"
                       MenuProps={{
                         disableScrollLock: true,
@@ -730,14 +738,15 @@ export default function CotizadorPage() {
                       }}
                     >
                       <MenuItem value="Odoo Online">
-                        Odoo Online (Alojamiento en la nube y todas las apps)
+                        Odoo Estándar (Odoo en línea y todas las apps)
                       </MenuItem>
-                      {/* <MenuItem value="Odoo.sh">
-                        Odoo.sh (flexible, personalizable, en la nube)
-                      </MenuItem> */}
-                      {/* <MenuItem value="On-Premise">
-                        On-Premise (en servidores propios o de terceros)
-                      </MenuItem> */}
+                      <MenuItem value="Odoo Personalizado">
+                        Odoo Personalizado (Odoo.sh, Studio de Odoo, API
+                        externa)
+                      </MenuItem>
+                      <MenuItem value="Odoo Community">
+                        Odoo Community (Versión con funcionalidades básicas)
+                      </MenuItem>
                     </Select>
                   </FormControl>
                 </Box>
