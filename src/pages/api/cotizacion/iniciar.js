@@ -24,9 +24,6 @@ export default async function handler(req, res) {
     estimatedHours,
     licenseQuote,
     quote,
-    hosteo,
-    tipoMoneda = "MXN",
-    exchangeRate = 19,
   } = req.body;
 
   if (!customerName || !customerEmail) {
@@ -100,35 +97,14 @@ export default async function handler(req, res) {
       requestBody: { values: [row] },
     });
 
-    // 3. Iniciar proceso en background (NO ESPERAR respuesta)
-    const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-    const host = req.headers.host;
-    const backgroundUrl = `${protocol}://${host}/api/cotizacion/procesar`;
-
-    fetch(backgroundUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cotizacionId,
-        customerName,
-        customerCompany,
-        customerEmail,
-        selectedModules,
-        licenseQuote,
-        quote,
-        hosteo,
-        estimatedHours,
-        tipoMoneda,
-        exchangeRate,
-      }),
-    }).catch((err) => console.error("Error iniciando background:", err));
-
-    // 4. Responder INMEDIATAMENTE
+    // 3. Responder de inmediato. La generación y descarga del PDF la realiza
+    //    el cliente llamando directamente a /api/cotizacion/procesar, de modo
+    //    que el usuario obtiene su cotización aunque el correo esté deshabilitado.
+    //    Este endpoint solo persiste el lead en Google Sheets.
     return res.status(200).json({
       ok: true,
       cotizacionId,
-      message:
-        "Cotización guardada. Recibirás tu propuesta por correo en 2-3 minutos.",
+      message: "Cotización registrada.",
     });
   } catch (error) {
     console.error("Error iniciando cotización:", error);

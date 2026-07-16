@@ -54,6 +54,12 @@ export default async function handler(req, res) {
     const convertedImplementationQuote = convertPrice(parseFloat(quote || 0));
     const currencySymbol = getCurrencySymbol();
 
+    // IVA (16%) aplicado SOLO al costo de licencias de Odoo. La implementación
+    // se factura con IVA por separado (Tersoft), por eso NO se le suma aquí.
+    const IVA_RATE = 0.16;
+    const convertedLicenseIva = convertedLicenseQuote * IVA_RATE;
+    const convertedLicenseTotalConIva = convertedLicenseQuote * (1 + IVA_RATE);
+
     const today = new Date().toLocaleDateString("es-ES", {
       day: "numeric",
       month: "long",
@@ -124,8 +130,12 @@ Fecha: ${today}
 8. Costos y Condiciones de Pago
 
     - Escribir "Los costos del proyecto son los siguientes:
-    - Costo de licencias: ${currencySymbol} ${formatPrice(
+    - Costo de licencias (subtotal): ${currencySymbol} ${formatPrice(
       convertedLicenseQuote
+    )}
+    - IVA (16%): ${currencySymbol} ${formatPrice(convertedLicenseIva)}
+    - Total de licencias con IVA: ${currencySymbol} ${formatPrice(
+      convertedLicenseTotalConIva
     )} (directamente con Odoo)
     - Implementación: ${currencySymbol} ${formatPrice(
       convertedImplementationQuote
@@ -149,8 +159,12 @@ Fecha: ${today}
   TERSOFT
     
 Datos para la sección 8:
-- Costo de licencias: ${currencySymbol} ${formatPrice(
+- Costo de licencias (subtotal): ${currencySymbol} ${formatPrice(
       convertedLicenseQuote
+    )}
+- IVA (16%): ${currencySymbol} ${formatPrice(convertedLicenseIva)}
+- Total de licencias con IVA: ${currencySymbol} ${formatPrice(
+      convertedLicenseTotalConIva
     )} (directamente con Odoo)
 - Implementación: ${currencySymbol} ${formatPrice(
       convertedImplementationQuote
@@ -260,7 +274,13 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
     const pdfBase64 = doc.output("datauristring").split(",")[1];
     console.log(`✅ PDF generado para ${cotizacionId}`);
 
-    // PASO 3: ENVIAR EMAIL
+    // PASO 3: ENVIAR EMAIL (best-effort — NO bloquea la descarga)
+    // Depende de las credenciales SMTP de Gmail (SMTP_USER / SMTP_PASS). Si
+    // están caducadas (p. ej. la cuenta de envío fue dada de baja), el envío
+    // falla, se registra y se CONTINÚA: el PDF siempre se devuelve al navegador
+    // para descargarse. Al restablecer las credenciales, el correo se reactiva
+    // solo, sin cambiar código.
+    try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
@@ -269,6 +289,9 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      connectionTimeout: 7000,
+      greetingTimeout: 7000,
+      socketTimeout: 7000,
     });
 
     await transporter.sendMail({
@@ -320,12 +343,20 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
     });
 
     console.log(`✅ Email enviado para ${cotizacionId}`);
+    } catch (mailErr) {
+      console.error(
+        `⚠️ No se pudo enviar el correo para ${cotizacionId} (se continúa con la descarga):`,
+        mailErr.message
+      );
+    }
 
-    return res.status(200).json({
-      ok: true,
-      cotizacionId,
-      message: "Cotización procesada y enviada",
-    });
+    // PASO 4: DEVOLVER EL PDF PARA DESCARGA INMEDIATA EN EL NAVEGADOR
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="Propuesta-Odoo.pdf"'
+    );
+    return res.status(200).send(Buffer.from(pdfBase64, "base64"));
   } catch (error) {
     console.error(`❌ Error procesando ${cotizacionId}:`, error);
     return res.status(500).json({

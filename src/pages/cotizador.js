@@ -364,30 +364,56 @@ export default function CotizadorPage() {
         exchangeRate,
       };
 
-      // ✅ NUEVO: Solo 1 fetch al endpoint optimizado
-      const response = await fetch("/api/cotizacion/iniciar", {
+      // 1) Registrar el lead en Google Sheets (en paralelo, best-effort).
+      const leadPromise = fetch("/api/cotizacion/iniciar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).catch((err) => {
+        console.error("No se pudo registrar el lead en Sheets:", err);
+      });
+
+      // 2) Generar la propuesta en PDF y descargarla en el navegador.
+      const response = await fetch("/api/cotizacion/procesar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || `Error del servidor (${response.status})`
-        );
+        let message = `Error del servidor (${response.status})`;
+        try {
+          const errorData = await response.json();
+          message = errorData.error || message;
+        } catch (_) {
+          // la respuesta de error no traía JSON
+        }
+        throw new Error(message);
       }
 
-      const data = await response.json();
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      const safeCompany = (customerCompany || "cliente")
+        .trim()
+        .replace(/[^a-zA-Z0-9_-]+/g, "_");
+      link.download = `Propuesta-Odoo-${safeCompany}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      // Aseguramos que el registro del lead termine (sin bloquear si falló).
+      await leadPromise;
 
       // Mostrar mensaje de éxito
       await Swal.fire({
         icon: "success",
-        title: "¡Cotización registrada!",
+        title: "¡Tu cotización está lista!",
         html: `
-        <p>Hemos guardado tu información exitosamente.</p>
-        <p><strong>Recibirás tu propuesta en PDF por correo en los próximos 2-3 minutos.</strong></p>
-      
+        <p>Tu propuesta en PDF se <strong>descargó automáticamente</strong>.</p>
+        <p>Si no la ves, revisa la carpeta de <strong>Descargas</strong> de tu navegador.</p>
       `,
         confirmButtonText: "Entendido",
         confirmButtonColor: "#a4478d",
@@ -439,6 +465,15 @@ export default function CotizadorPage() {
   const getCurrencySymbol = () => {
     return tipoMoneda === "USD" ? "USD $" : "MX$";
   };
+
+  // IVA (16%) aplicado SOLO al costo de licencias de Odoo (en MXN). La
+  // implementación se factura con IVA por separado (Tersoft), por eso el IVA
+  // no se le suma. Estos valores alimentan el resumen de licencias y el total.
+  const IVA_RATE = 0.16;
+  const licenseSubtotalMXN = parseFloat(licenseQuote || 0);
+  const licenseIvaMXN = licenseSubtotalMXN * IVA_RATE;
+  const licenseTotalConIvaMXN = licenseSubtotalMXN * (1 + IVA_RATE);
+  const totalGeneralMXN = parseFloat(quote || 0) + licenseTotalConIvaMXN;
 
   return (
     <ThemeProvider theme={theme}>
@@ -1477,6 +1512,9 @@ export default function CotizadorPage() {
                 {getCurrencySymbol()}{" "}
                 {formatPrice(convertPrice(parseFloat(quote || 0)))}
               </Typography>
+              <Typography variant="body2" color="text.secondary">
+                + IVA (facturado por Tersoft)
+              </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 *Este costo es una aproximación y puede variar según los
                 requerimientos, para una cotización más precisa, por favor
@@ -1497,18 +1535,38 @@ export default function CotizadorPage() {
                 Costo anual de {numUsuarios} licencias:
               </Typography>
 
-              {/* Precio SIN Descuento */}
-              <Typography variant="body2" color="text.primary">
+              {/* Precio regular (sin descuento) */}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ textDecoration: "line-through" }}
+              >
                 <strong>Precio regular:</strong> {getCurrencySymbol()}{" "}
                 {formatPrice(convertPrice(parseFloat(licenseQuoteNoDisc || 0)))}
               </Typography>
 
+              {/* Subtotal con descuento (sin IVA) */}
+              <Typography variant="body2" color="text.primary">
+                <strong>Subtotal (con descuento):</strong> {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(licenseSubtotalMXN))}
+              </Typography>
+
+              {/* IVA 16% (solo licencias) */}
+              <Typography variant="body2" color="text.primary">
+                <strong>IVA (16%):</strong> {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(licenseIvaMXN))}
+              </Typography>
+
+              {/* Total de licencias con IVA */}
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                <strong>Total con IVA:</strong>
+              </Typography>
               <Typography
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
                 {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(parseFloat(licenseQuote || 0)))}
+                {formatPrice(convertPrice(licenseTotalConIvaMXN))}
               </Typography>
             </Box>
 
@@ -1529,11 +1587,7 @@ export default function CotizadorPage() {
                 sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
                 {getCurrencySymbol()}{" "}
-                {formatPrice(
-                  convertPrice(
-                    parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
-                  )
-                )}
+                {formatPrice(convertPrice(totalGeneralMXN))}
               </Typography>
             </Box>
 
@@ -1565,8 +1619,8 @@ export default function CotizadorPage() {
                 }}
               >
                 {isDownloading
-                  ? "Procesando…"
-                  : "Descargar y enviar por correo"}
+                  ? "Generando PDF…"
+                  : "Descargar cotización (PDF)"}
               </Button>
             </Box>
           </Paper>
@@ -1621,6 +1675,9 @@ export default function CotizadorPage() {
                 {getCurrencySymbol()}{" "}
                 {formatPrice(convertPrice(parseFloat(quote || 0)))}
               </Typography>
+              <Typography variant="body2" color="text.secondary">
+                + IVA (facturado por Tersoft)
+              </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 *Este costo es una aproximación y puede variar según los
                 requerimientos, para una cotización más precisa, por favor
@@ -1641,18 +1698,38 @@ export default function CotizadorPage() {
                 Costo anual de {numUsuarios} licencias:
               </Typography>
 
-              {/* Precio SIN Descuento */}
-              <Typography variant="body2" color="text.primary">
+              {/* Precio regular (sin descuento) */}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ textDecoration: "line-through" }}
+              >
                 <strong>Precio regular:</strong> {getCurrencySymbol()}{" "}
                 {formatPrice(convertPrice(parseFloat(licenseQuoteNoDisc || 0)))}
               </Typography>
 
+              {/* Subtotal con descuento (sin IVA) */}
+              <Typography variant="body2" color="text.primary">
+                <strong>Subtotal (con descuento):</strong> {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(licenseSubtotalMXN))}
+              </Typography>
+
+              {/* IVA 16% (solo licencias) */}
+              <Typography variant="body2" color="text.primary">
+                <strong>IVA (16%):</strong> {getCurrencySymbol()}{" "}
+                {formatPrice(convertPrice(licenseIvaMXN))}
+              </Typography>
+
+              {/* Total de licencias con IVA */}
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                <strong>Total con IVA:</strong>
+              </Typography>
               <Typography
                 variant="h3"
                 sx={{ fontWeight: "bold", color: "#000000" }}
               >
                 {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(parseFloat(licenseQuote || 0)))}
+                {formatPrice(convertPrice(licenseTotalConIvaMXN))}
               </Typography>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -1677,11 +1754,7 @@ export default function CotizadorPage() {
                 sx={{ fontWeight: "bold", color: "#a4478d" }}
               >
                 {getCurrencySymbol()}{" "}
-                {formatPrice(
-                  convertPrice(
-                    parseFloat(quote || 0) + parseFloat(licenseQuote || 0)
-                  )
-                )}
+                {formatPrice(convertPrice(totalGeneralMXN))}
               </Typography>
             </Box>
 
@@ -1713,8 +1786,8 @@ export default function CotizadorPage() {
                 }}
               >
                 {isDownloading
-                  ? "Procesando…"
-                  : "Descargar y enviar por correo"}
+                  ? "Generando PDF…"
+                  : "Descargar cotización (PDF)"}
               </Button>
             </Box>
           </Paper>
