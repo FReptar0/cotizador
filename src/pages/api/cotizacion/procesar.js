@@ -250,6 +250,34 @@ Genera el contenido en español sin faltas de ortografia, siguiendo exactamente 
       }
     }
 
+    // Notas importantes (leyenda fija — texto legal exacto, no depende de Gemini)
+    const notas = [
+      "Notas importantes:",
+      "• Esta propuesta es preliminar y no constituye una cotización definitiva; queda sujeta a la aprobación final del proyecto.",
+      "• Cualquier requerimiento no especificado en esta propuesta se considera fuera del alcance y, en caso de requerirse, será objeto de una cotización adicional.",
+    ];
+    if (y > pageHeight - marginY - 6 * lineHeight) {
+      doc.addPage();
+      y = marginY;
+    } else {
+      y += lineHeight * 2;
+    }
+    for (const nota of notas) {
+      doc.setFont(
+        "helvetica",
+        nota === "Notas importantes:" ? "bold" : "normal"
+      );
+      const wrappedNota = doc.splitTextToSize(nota, usableWidth);
+      for (const chunk of wrappedNota) {
+        if (y > pageHeight - marginY) {
+          doc.addPage();
+          y = marginY;
+        }
+        doc.text(chunk, marginX, y, { maxWidth: usableWidth, align: "justify" });
+        y += lineHeight;
+      }
+    }
+
     if (y > pageHeight - marginY - 5 * lineHeight) {
       doc.addPage();
       y = marginY;
