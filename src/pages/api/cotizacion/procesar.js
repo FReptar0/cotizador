@@ -150,7 +150,6 @@ Fecha: ${today}
    -  escribir "La implementacion de odoo proporcionara a ${customerCompany} una plataforma integrada y eficiente para gestionar sus operaciones. Con la implementación de Odoo, ${customerCompany} podrá optimizar sus procesos, mejorar la colaboración entre departamentos y tomar decisiones informadas basadas en datos en tiempo real. Estamos comprometidos a brindar un servicio de alta calidad y a garantizar el éxito de esta implementación."
 
 10. Beneficios adicionales
-    • Sin anticipo para la consultoría: trabajamos comprometidos con el éxito de tu proyecto
     • 15 dias de soporte post-implementación
     • TERSOFT esta compormetido con el exito del proyecto y garantizara una implementacion efectiva, con soporte continuo y adaptacion a las necesidades especificas de ${customerCompany}
     • A la espera de su aprobacion para proceder con la implementacion de Odoo en su empresa.
