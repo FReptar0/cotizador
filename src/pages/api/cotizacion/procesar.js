@@ -145,12 +145,12 @@ Fecha: ${today}
     - Tipo de cambio utilizado: ${exchangeRate} MXN = 1 USD`
         : ""
     }
-    - Condiciones de pago: 100% al finalizar la implementación.
+    - Condiciones de pago: se definen de común acuerdo en una reunión con nuestro equipo, según las necesidades del proyecto.
 9. Conclusión
    -  escribir "La implementacion de odoo proporcionara a ${customerCompany} una plataforma integrada y eficiente para gestionar sus operaciones. Con la implementación de Odoo, ${customerCompany} podrá optimizar sus procesos, mejorar la colaboración entre departamentos y tomar decisiones informadas basadas en datos en tiempo real. Estamos comprometidos a brindar un servicio de alta calidad y a garantizar el éxito de esta implementación."
 
 10. Beneficios adicionales
-    • Sin anticipo para la consultoria, usted va a pagar hasta que su proyecto este funcionando correctamente
+    • Sin anticipo para la consultoría: trabajamos comprometidos con el éxito de tu proyecto
     • 15 dias de soporte post-implementación
     • TERSOFT esta compormetido con el exito del proyecto y garantizara una implementacion efectiva, con soporte continuo y adaptacion a las necesidades especificas de ${customerCompany}
     • A la espera de su aprobacion para proceder con la implementacion de Odoo en su empresa.
