@@ -1327,22 +1327,33 @@ export default function CotizadorPage() {
                         >
                           {group.title}
                         </Typography>
-                        {group.items.map((moduleName) => (
-                          <FormControlLabel
-                            key={moduleName}
-                            control={
-                              <Checkbox
-                                onChange={() => handleModuleChange(moduleName)}
-                                checked={selectedModules.includes(moduleName)}
-                                sx={{
-                                  color: group.color,
-                                  "&.Mui-checked": { color: group.color },
-                                }}
-                              />
-                            }
-                            label={moduleName}
-                          />
-                        ))}
+                        {/* Columna: un módulo por renglón. Sin este contenedor
+                            los FormControlLabel fluyen en línea y se emparejan
+                            de forma irregular según el largo de cada etiqueta. */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          {group.items.map((moduleName) => (
+                            <FormControlLabel
+                              key={moduleName}
+                              control={
+                                <Checkbox
+                                  onChange={() => handleModuleChange(moduleName)}
+                                  checked={selectedModules.includes(moduleName)}
+                                  sx={{
+                                    color: group.color,
+                                    "&.Mui-checked": { color: group.color },
+                                  }}
+                                />
+                              }
+                              label={moduleName}
+                            />
+                          ))}
+                        </Box>
                       </Box>
                     ))}
                   </Box>
