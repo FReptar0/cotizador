@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...salvo la plantilla, que sí debe versionarse (no contiene secretos)
+!.env.example
 
 # vercel
 .vercel

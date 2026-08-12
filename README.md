@@ -1,40 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Cotizador Tersoft
 
-## Getting Started
+Cotizador en línea de proyectos Odoo. El prospecto arma su configuración
+(módulos, licencias, tipo de implementación), obtiene una estimación de horas y
+costos, y descarga una propuesta en PDF redactada con IA. Cada cotización queda
+registrada como lead en Google Sheets.
 
-First, run the development server:
+Producción: rama `main` — se despliega solo en Vercel al hacer push.
+
+## Stack
+
+| Pieza | Tecnología |
+|---|---|
+| Framework | Next.js 15 (Pages Router, JavaScript) |
+| UI | MUI v7 + SweetAlert2 |
+| Autenticación | NextAuth con proveedor Google (sesión JWT) |
+| Redacción de propuestas | Google Gemini (`gemini-2.5-flash`) |
+| Generación de PDF | jsPDF (en el servidor) |
+| Registro de leads | Google Sheets vía cuenta de servicio |
+| Correo | Nodemailer sobre Gmail SMTP |
+
+## Puesta en marcha
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env    # y llena los valores — ver comentarios del archivo
+npm run dev             # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para que el login con Google funcione en local, agrega
+`http://localhost:3000/api/auth/callback/google` a las URIs de redirección
+autorizadas de la credencial OAuth en Google Cloud Console.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+```bash
+npm run build   # build de producción
+npm start       # sirve el build
+npm run lint
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## Estructura
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+```
+src/pages/
+  index.js                      redirige a /login
+  login.js                      landing pública + acceso (Google o invitado)
+  cotizador.js                  formulario, cálculo y descarga del PDF
+  diagnostico-inteligente.js    diagnóstico asistido por IA (fuera del menú)
+  api/
+    auth/[...nextauth].js       NextAuth (Google)
+    cotizacion/iniciar.js       registra el lead en Google Sheets
+    cotizacion/procesar.js      Gemini → PDF → descarga (+ correo best-effort)
+    gemini-diagnostico.js       PDF del diagnóstico inteligente
+src/components/                 Layout, Navbar y Footer (no aplican en /login)
+public/                         logos, imágenes del hero y del encabezado del PDF
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Cómo fluye una cotización
 
-## Learn More
+1. `/cotizador` calcula horas y costos en el navegador conforme cambia el formulario.
+2. Al pedir la propuesta se llaman dos endpoints en paralelo:
+   - `POST /api/cotizacion/iniciar` — guarda el lead en Sheets.
+   - `POST /api/cotizacion/procesar` — pide el texto a Gemini, arma el PDF y lo devuelve.
+3. El navegador descarga el PDF directamente de la respuesta.
+4. El correo se intenta enviar dentro de `procesar`, pero **no bloquea**: si las
+   credenciales SMTP fallan, se registra el error y la descarga ocurre igual.
 
-To learn more about Next.js, take a look at the following resources:
+## Reglas de negocio a tener presentes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+- **IVA 16% solo sobre licencias.** La implementación se factura con IVA por
+  separado (Tersoft), por eso no se le suma en el total de licencias.
+- **Tipo de cambio** configurable con `NEXT_PUBLIC_EXCHANGE_RATE_MXN_USD`
+  (default 19). No se consulta ningún servicio de tipo de cambio.
+- **Costo de implementación** = horas estimadas × 500 MXN, +1000 si el cliente
+  no tiene catálogo de cuentas.
+- Los endpoints son **públicos**: existe acceso como invitado, así que no
+  requieren sesión. Tenlo en cuenta si algún día se agrega rate limiting.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Variables de entorno
 
-## Deploy on Vercel
+Están todas documentadas en [`.env.example`](.env.example), incluida la fuente
+de cada credencial. Las mismas se cargan en Vercel → Project Settings →
+Environment Variables.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Dos que suelen dar problemas al cambiar de entorno:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+- `GOOGLE_PRIVATE_KEY` debe ir en una sola línea, entrecomillada y con los
+  saltos como `\n` literales. El código los reconvierte.
+- `NEXTAUTH_URL` debe coincidir exactamente con el dominio real, y ese dominio
+  debe estar dado de alta como URI de redirección en Google Cloud Console.
+
+## Deuda técnica conocida
+
+- Sin tests automatizados.
+- 10 vulnerabilidades de npm pendientes; todas requieren upgrades mayores
+  (`jspdf` 3→4, `next` 15→16, `nodemailer` 7→9, `googleapis` 149→174,
+  `next-auth` 4→5). Ver `npm audit`.
+- En `cotizador.js` quedan campos capturados que no afectan el cálculo
+  (`operaciones`, `fechaInicio`, `multimoneda`) y lógica inactiva de
+  `Odoo.sh`, `urgenciaDias` y `personalizaciones`, cuyos controles están
+  comentados en la interfaz.
+- El panel de Resumen fijo se posiciona con un `left` calculado a mano que
+  asume un contenedor de 1200 px.
