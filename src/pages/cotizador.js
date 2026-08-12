@@ -16,7 +16,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Grid,
   Button,
   IconButton,
   Menu,
@@ -158,7 +157,10 @@ export default function CotizadorPage() {
 
   // **Nuevo estado** para el tipo de moneda
   const [tipoMoneda, setTipoMoneda] = useState("MXN");
-  const exchangeRate = 19; // 19 MXN = 1 USD
+  // Tipo de cambio MXN → USD. Configurable sin tocar código vía
+  // NEXT_PUBLIC_EXCHANGE_RATE_MXN_USD; si no está definida, usa 19.
+  const exchangeRate =
+    Number(process.env.NEXT_PUBLIC_EXCHANGE_RATE_MXN_USD) || 19;
 
   // Menú de usuario (si se usa en esta página)
   const [anchorEl, setAnchorEl] = useState(null);
@@ -475,6 +477,142 @@ export default function CotizadorPage() {
   const licenseTotalConIvaMXN = licenseSubtotalMXN * (1 + IVA_RATE);
   const totalGeneralMXN = parseFloat(quote || 0) + licenseTotalConIvaMXN;
 
+  // Contenido del panel de Resumen. Se define una sola vez y se reutiliza en
+  // la versión fija de escritorio y en la de móvil; antes estaba duplicado y
+  // las dos copias ya habían divergido (títulos y notas distintas).
+  const resumenContent = (
+    <>
+      <Typography variant="h5" fontWeight="bold" color="#007BFF" sx={{ mb: 2 }}>
+        Resumen
+      </Typography>
+      <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+        <strong>Módulos seleccionados:</strong> {selectedModules.length}
+      </Typography>
+      <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
+        <strong>Horas estimadas:</strong> {estimatedHours} horas
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+
+      {/* Costo de implementación */}
+      <Box sx={{ mb: 2 }}>
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          color="#007BFF"
+          sx={{ mb: 1 }}
+        >
+          Costo de implementación:
+        </Typography>
+        <Typography variant="h3" sx={{ fontWeight: "bold", color: "#000000" }}>
+          {getCurrencySymbol()}{" "}
+          {formatPrice(convertPrice(parseFloat(quote || 0)))}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          + IVA (facturado por Tersoft)
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          *Este costo es una aproximación y puede variar según los
+          requerimientos, para una cotización más precisa, por favor
+          contáctenos.
+        </Typography>
+      </Box>
+
+      <Divider sx={{ my: 2 }} />
+
+      {/* Costo anual de licencias */}
+      <Box sx={{ mb: 2 }}>
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          color="#007BFF"
+          sx={{ mb: 1 }}
+        >
+          Costo anual de {numUsuarios} licencias:
+        </Typography>
+
+        {/* Precio regular (sin descuento) */}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ textDecoration: "line-through" }}
+        >
+          <strong>Precio regular:</strong> {getCurrencySymbol()}{" "}
+          {formatPrice(convertPrice(parseFloat(licenseQuoteNoDisc || 0)))}
+        </Typography>
+
+        {/* Subtotal con descuento (sin IVA) */}
+        <Typography variant="body2" color="text.primary">
+          <strong>Subtotal (con descuento):</strong> {getCurrencySymbol()}{" "}
+          {formatPrice(convertPrice(licenseSubtotalMXN))}
+        </Typography>
+
+        {/* IVA 16% (solo licencias) */}
+        <Typography variant="body2" color="text.primary">
+          <strong>IVA (16%):</strong> {getCurrencySymbol()}{" "}
+          {formatPrice(convertPrice(licenseIvaMXN))}
+        </Typography>
+
+        {/* Total de licencias con IVA */}
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          <strong>Total con IVA:</strong>
+        </Typography>
+        <Typography variant="h3" sx={{ fontWeight: "bold", color: "#000000" }}>
+          {getCurrencySymbol()}{" "}
+          {formatPrice(convertPrice(licenseTotalConIvaMXN))}
+        </Typography>
+
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          El costo se paga directamente a odoo
+        </Typography>
+      </Box>
+
+      <Divider sx={{ mb: 2 }} />
+
+      {/* Costo total */}
+      <Box sx={{ mb: 2 }}>
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          color="#a4478d"
+          sx={{ mb: 1 }}
+        >
+          Costo total:
+        </Typography>
+        <Typography variant="h3" sx={{ fontWeight: "bold", color: "#a4478d" }}>
+          {getCurrencySymbol()} {formatPrice(convertPrice(totalGeneralMXN))}
+        </Typography>
+      </Box>
+
+      <Divider sx={{ mb: 2 }} />
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleDownloadAndSend}
+          disabled={isDownloading}
+          sx={{
+            fontSize: "1rem",
+            padding: "1rem 1.5rem",
+            backgroundColor: "#a4478d",
+            color: "#ffffff",
+            transition: "transform 0.2s ease-in-out",
+            "&:hover": {
+              backgroundColor: "#922c76",
+              transform: "scale(1.05)",
+            },
+            "&:disabled": {
+              backgroundColor: "#d3d3d3",
+              color: "#8c8c8c",
+            },
+          }}
+        >
+          {isDownloading ? "Generando PDF…" : "Descargar cotización (PDF)"}
+        </Button>
+      </Box>
+    </>
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <Head>
@@ -487,9 +625,18 @@ export default function CotizadorPage() {
       {/* Se asume que el Navbar y el Footer se integran desde el Layout global */}
       <Box sx={{ bgcolor: "background.default" }}>
         <Container maxWidth="lg" sx={{ py: 3 }}>
-          <Grid container spacing={2}>
+          {/* Rejilla principal: formulario (2/3) + espacio reservado para el
+              panel de Resumen fijo (1/3). CSS Grid en vez de <Grid item>,
+              cuya API fue removida en MUI v7. */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" },
+              gap: 2,
+            }}
+          >
             {/* Columna Izquierda (Formulario) */}
-            <Grid item xs={12} md={8}>
+            <Box>
               <Paper
                 elevation={1}
                 sx={{
@@ -629,7 +776,7 @@ export default function CotizadorPage() {
                       color="text.secondary"
                       sx={{ mt: 1 }}
                     >
-                      Tipo de cambio: 19 MXN = 1 USD
+                      Tipo de cambio: {exchangeRate} MXN = 1 USD
                     </Typography>
                   )}
                 </Box>
@@ -1058,7 +1205,17 @@ export default function CotizadorPage() {
                     Selecciona los módulos que deseas automatizar en tu negocio
                   </Typography>
 
-                  <Grid container spacing={4}>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, 1fr)",
+                        md: "repeat(3, 1fr)",
+                      },
+                      gap: 4,
+                    }}
+                  >
                     {[
                       {
                         title: "FINANZAS",
@@ -1157,7 +1314,7 @@ export default function CotizadorPage() {
                         ],
                       },
                     ].map((group) => (
-                      <Grid item xs={12} sm={6} md={4} key={group.title}>
+                      <Box key={group.title}>
                         <Typography
                           variant="subtitle1"
                           fontWeight="bold"
@@ -1186,9 +1343,9 @@ export default function CotizadorPage() {
                             label={moduleName}
                           />
                         ))}
-                      </Grid>
+                      </Box>
                     ))}
-                  </Grid>
+                  </Box>
                 </Box>
 
                 {/* 2. Número de empresas */}
@@ -1454,13 +1611,14 @@ export default function CotizadorPage() {
                   </FormControl>
                 </Box>
               </Paper>
-            </Grid>
+            </Box>
 
-            {/* Columna Derecha (vacía en desktop) */}
-            <Grid item xs={0} md={4} />
-          </Grid>
+            {/* Columna Derecha: espacio que ocupa el panel de Resumen fijo */}
+            <Box sx={{ display: { xs: "none", md: "block" } }} />
+          </Box>
         </Container>
 
+        {/* Resumen fijo (escritorio) */}
         <Box
           sx={{
             position: "fixed",
@@ -1473,323 +1631,19 @@ export default function CotizadorPage() {
         >
           <Paper
             elevation={1}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              backgroundColor: "#f8f9fa",
-            }}
+            sx={{ p: 3, borderRadius: 2, backgroundColor: "#f8f9fa" }}
           >
-            <Typography
-              variant="h5" // Make text larger
-              fontWeight="bold"
-              color="#007BFF" // Use the blue color
-              sx={{ mb: 2 }}
-            >
-              Resumen
-            </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
-              <strong>Módulos seleccionados:</strong> {selectedModules.length}
-            </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
-              <strong>Horas estimadas:</strong> {estimatedHours} horas
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            {/* Costo de implementación */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="h5" // Make text larger
-                fontWeight="bold"
-                color="#007BFF" // Use the blue color
-                sx={{ mb: 1 }}
-              >
-                Costo de implementación:
-              </Typography>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
-              >
-                {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(parseFloat(quote || 0)))}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                + IVA (facturado por Tersoft)
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                *Este costo es una aproximación y puede variar según los
-                requerimientos, para una cotización más precisa, por favor
-                contáctenos.
-              </Typography>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Costo anual de licencias */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="h5"
-                fontWeight="bold"
-                color="#007BFF"
-                sx={{ mb: 1 }}
-              >
-                Costo anual de {numUsuarios} licencias:
-              </Typography>
-
-              {/* Precio regular (sin descuento) */}
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ textDecoration: "line-through" }}
-              >
-                <strong>Precio regular:</strong> {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(parseFloat(licenseQuoteNoDisc || 0)))}
-              </Typography>
-
-              {/* Subtotal con descuento (sin IVA) */}
-              <Typography variant="body2" color="text.primary">
-                <strong>Subtotal (con descuento):</strong> {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(licenseSubtotalMXN))}
-              </Typography>
-
-              {/* IVA 16% (solo licencias) */}
-              <Typography variant="body2" color="text.primary">
-                <strong>IVA (16%):</strong> {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(licenseIvaMXN))}
-              </Typography>
-
-              {/* Total de licencias con IVA */}
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                <strong>Total con IVA:</strong>
-              </Typography>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
-              >
-                {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(licenseTotalConIvaMXN))}
-              </Typography>
-            </Box>
-
-            <Divider sx={{ mb: 2 }} />
-
-            {/* Costo total */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="h5" // Make text larger
-                fontWeight="bold"
-                color="#a4478d" // Use the blue color
-                sx={{ mb: 1 }}
-              >
-                Costo total:
-              </Typography>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold", color: "#a4478d" }}
-              >
-                {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(totalGeneralMXN))}
-              </Typography>
-            </Box>
-
-            <Divider sx={{ mb: 2 }} />
-
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}
-            >
-              {" "}
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={handleDownloadAndSend}
-                disabled={isDownloading}
-                sx={{
-                  fontSize: "1rem", // Hacer el texto más grande
-                  padding: "1rem 1.5rem", // Aumentar el tamaño del botón
-                  backgroundColor: "#a4478d", // Cambiar el color del botón
-                  color: "#ffffff", // Color del texto
-                  transition: "transform 0.2s ease-in-out", // Agregar animación
-                  "&:hover": {
-                    backgroundColor: "#922c76", // Color al pasar el mouse
-                    transform: "scale(1.05)", // Escalar ligeramente al pasar el mouse
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#d3d3d3", // Color cuando está deshabilitado
-                    color: "#8c8c8c",
-                  },
-                }}
-              >
-                {isDownloading
-                  ? "Generando PDF…"
-                  : "Descargar cotización (PDF)"}
-              </Button>
-            </Box>
+            {resumenContent}
           </Paper>
         </Box>
 
         {/* Resumen en móvil */}
-        <Box
-          sx={{
-            display: { xs: "block", md: "none" },
-            mt: 4,
-            px: 2,
-          }}
-        >
+        <Box sx={{ display: { xs: "block", md: "none" }, mt: 4, px: 2 }}>
           <Paper
             elevation={1}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              backgroundColor: "#f8f9fa",
-            }}
+            sx={{ p: 3, borderRadius: 2, backgroundColor: "#f8f9fa" }}
           >
-            <Typography
-              variant="h5" // Make text larger
-              fontWeight="bold"
-              color="#007BFF" // Use the blue color
-              sx={{ mb: 2 }}
-            >
-              Resumen
-            </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
-              <strong>Módulos seleccionados:</strong> {selectedModules.length}
-            </Typography>
-            <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
-              <strong>Horas estimadas:</strong> {estimatedHours} horas
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            {/* Costo de implementación */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="h6" // Make text larger
-                fontWeight="bold"
-                color="#007BFF" // Use the blue color
-                sx={{ mb: 1 }}
-              >
-                Costo de implementación:
-              </Typography>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
-              >
-                {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(parseFloat(quote || 0)))}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                + IVA (facturado por Tersoft)
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                *Este costo es una aproximación y puede variar según los
-                requerimientos, para una cotización más precisa, por favor
-                contáctenos.
-              </Typography>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Costo anual de licencias */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="h6"
-                fontWeight="bold"
-                color="#007BFF"
-                sx={{ mb: 1 }}
-              >
-                Costo anual de {numUsuarios} licencias:
-              </Typography>
-
-              {/* Precio regular (sin descuento) */}
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ textDecoration: "line-through" }}
-              >
-                <strong>Precio regular:</strong> {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(parseFloat(licenseQuoteNoDisc || 0)))}
-              </Typography>
-
-              {/* Subtotal con descuento (sin IVA) */}
-              <Typography variant="body2" color="text.primary">
-                <strong>Subtotal (con descuento):</strong> {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(licenseSubtotalMXN))}
-              </Typography>
-
-              {/* IVA 16% (solo licencias) */}
-              <Typography variant="body2" color="text.primary">
-                <strong>IVA (16%):</strong> {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(licenseIvaMXN))}
-              </Typography>
-
-              {/* Total de licencias con IVA */}
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                <strong>Total con IVA:</strong>
-              </Typography>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold", color: "#000000" }}
-              >
-                {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(licenseTotalConIvaMXN))}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                El costo se paga directamente a odoo
-              </Typography>
-            </Box>
-
-            <Divider sx={{ mb: 2 }} />
-
-            {/* Costo total */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="h6" // Make text larger
-                fontWeight="bold"
-                color="#007BFF" // Use the blue color
-                sx={{ mb: 1 }}
-              >
-                Costo total:
-              </Typography>
-              <Typography
-                variant="h3"
-                sx={{ fontWeight: "bold", color: "#a4478d" }}
-              >
-                {getCurrencySymbol()}{" "}
-                {formatPrice(convertPrice(totalGeneralMXN))}
-              </Typography>
-            </Box>
-
-            <Divider sx={{ mb: 2 }} />
-
-            <Box
-              sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 3 }}
-            >
-              {" "}
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={handleDownloadAndSend}
-                disabled={isDownloading}
-                sx={{
-                  fontSize: "1rem", // Hacer el texto más grande
-                  padding: "1rem 1.5rem", // Aumentar el tamaño del botón
-                  backgroundColor: "#a4478d", // Cambiar el color del botón
-                  color: "#ffffff", // Color del texto
-                  transition: "transform 0.2s ease-in-out", // Agregar animación
-                  "&:hover": {
-                    backgroundColor: "#922c76", // Color al pasar el mouse
-                    transform: "scale(1.05)", // Escalar ligeramente al pasar el mouse
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#d3d3d3", // Color cuando está deshabilitado
-                    color: "#8c8c8c",
-                  },
-                }}
-              >
-                {isDownloading
-                  ? "Generando PDF…"
-                  : "Descargar cotización (PDF)"}
-              </Button>
-            </Box>
+            {resumenContent}
           </Paper>
         </Box>
       </Box>

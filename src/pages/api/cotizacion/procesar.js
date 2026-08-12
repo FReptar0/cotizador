@@ -24,7 +24,10 @@ export default async function handler(req, res) {
     hosteo,
     estimatedHours,
     tipoMoneda = "MXN",
-    exchangeRate = 19,
+    // El cliente envía el tipo de cambio en el payload; este default solo
+    // aplica si llegara ausente. Se mantiene alineado con el del front
+    // (NEXT_PUBLIC_EXCHANGE_RATE_MXN_USD).
+    exchangeRate = Number(process.env.NEXT_PUBLIC_EXCHANGE_RATE_MXN_USD) || 19,
   } = req.body;
 
   try {
