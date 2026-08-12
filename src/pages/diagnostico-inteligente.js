@@ -102,7 +102,7 @@ export default function DiagnosticoInteligentePage() {
       const propuesta = {
         procesos,
         objetivos,
-        alcance: `Basado en la información proporcionada por ${empresa}, se identifican necesidades en áreas como ventas, contabilidad, logística, atención a clientes y digitalización de procesos. Se recomienda implementar módulos como CRM, Ventas, Facturación, Inventario, y Recursos Humanos.`,
+        alcance: `Basado en la información proporcionada por ${nombreEmpresa}, se identifican necesidades en áreas como ventas, contabilidad, logística, atención a clientes y digitalización de procesos. Se recomienda implementar módulos como CRM, Ventas, Facturación, Inventario, y Recursos Humanos.`,
         fueraAlcance: `Se excluyen módulos no requeridos como Manufactura, Punto de Venta y Sitio Web.`,
         entregables: `Documentación, configuración de módulos, capacitaciones, manuales y soporte inicial.`,
         metodo: `1. Análisis de Requisitos\n2. Planificación del Proyecto\n3. Configuración y Personalización\n4. Capacitación de Usuarios\n5. Pruebas y Ajustes\n6. Puesta en Marcha\n7. Soporte y Evaluación`,
